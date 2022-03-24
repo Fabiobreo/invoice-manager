@@ -1,5 +1,5 @@
-import { Button, FormLabel, Heading, Input, useToast } from "@chakra-ui/react";
-import { Fragment, useContext, useEffect, useRef, useState } from "react";
+import { Button, FormLabel, Heading, Input, InputGroup, InputRightElement, useToast } from "@chakra-ui/react";
+import { Fragment, useCallback, useContext, useEffect, useRef, useState } from "react";
 import { useHistory } from "react-router-dom";
 import useHttp from "../../hooks/use-http";
 import { login, register } from "../../lib/api";
@@ -15,6 +15,8 @@ const Register: React.FC<{ switchAuthMode: () => void }> = (props) => {
   const emailInputRef = useRef<HTMLInputElement>(null);
   const passwordInputRef = useRef<HTMLInputElement>(null);
   const confirmPasswordInputRef = useRef<HTMLInputElement>(null);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const toast = useToast();
 
   const authCtx = useContext(AuthContext);
@@ -34,6 +36,18 @@ const Register: React.FC<{ switchAuthMode: () => void }> = (props) => {
 
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<ErrorType>();
+  
+  const errorHandler = useCallback(() => {
+    setError(undefined);
+  }, []);
+
+  const showPasswordHandler = () => {
+    setShowPassword(!showPassword);
+  };
+
+  const showConfirmPasswordHandler = () => {
+    setShowConfirmPassword(!showConfirmPassword);
+  };
 
   useEffect(() => {
     setIsLoading(false);
@@ -59,26 +73,26 @@ const Register: React.FC<{ switchAuthMode: () => void }> = (props) => {
         onConfirm: errorHandler,
       });
     }
-  }, [registerStatus, registerError, sendLoginRequest, toast]);
+  }, [registerStatus, registerError, sendLoginRequest, toast, errorHandler]);
 
   useEffect(() => {
-    setIsLoading(false);
     if (loginStatus === "completed" && !loginError) {
+      setIsLoading(false);
       const expirationTime = new Date(
         new Date().getTime() + 2 * 60 * 60 * 1000
       ); // TODO CHANGE HERE, EXPIRES LOGIN IN TWO HOURS
       authCtx.login(loginData, expirationTime.toISOString());
       history.replace("/");
     } else if (loginError) {
+      setIsLoading(false);
       setError({
         title: "Authentication failed",
-        message:
-          "Could not login to the newly registered account due to: " +
-          loginError,
+        message: `Could not login to the newly registered account due to: ${loginError}`,
         onConfirm: errorHandler,
       });
     }
-  }, [loginStatus, loginData, loginError, authCtx, history]);
+  }, [loginStatus, loginData, loginError, authCtx, history, errorHandler]);
+
 
   const submitHandler = (event: React.FormEvent) => {
     event.preventDefault();
@@ -133,10 +147,6 @@ const Register: React.FC<{ switchAuthMode: () => void }> = (props) => {
     });
   };
 
-  const errorHandler = () => {
-    setError(undefined);
-  };
-
   return (
     <Fragment>
       {error && (
@@ -153,35 +163,63 @@ const Register: React.FC<{ switchAuthMode: () => void }> = (props) => {
             <FormLabel fontWeight="bold" htmlFor="name">
               Name
             </FormLabel>
-            <Input type="text" id="name" required ref={nameInputRef} />
+            <Input type="text" id="name" 
+                placeholder="Enter name" required ref={nameInputRef} />
           </div>
           <div className={classes.control}>
             <FormLabel fontWeight="bold" htmlFor="email">
               Email
             </FormLabel>
-            <Input type="email" id="email" required ref={emailInputRef} />
+            <Input type="email" id="email"
+                placeholder="Enter email" required ref={emailInputRef} />
           </div>
           <div className={classes.control}>
             <FormLabel fontWeight="bold" htmlFor="password">
               Password
             </FormLabel>
-            <Input
-              type="password"
-              id="password"
-              required
-              ref={passwordInputRef}
-            />
+            <InputGroup>
+              <Input
+                id="password"
+                type={showPassword ? "text" : "password"}
+                placeholder="Enter password"
+                ref={passwordInputRef}
+              />
+              <InputRightElement width="4.5rem">
+                <Button
+                  h="1.75rem"
+                  size="sm"
+                  background="#64b5f6"
+                  color="white"
+                  onClick={showPasswordHandler}
+                >
+                  {showPassword ? "Hide" : "Show"}
+                </Button>
+              </InputRightElement>
+            </InputGroup>
           </div>
           <div className={classes.control}>
             <FormLabel fontWeight="bold" htmlFor="confirmPassword">
               Confirm Password
             </FormLabel>
-            <Input
-              type="password"
-              id="confirmPassword"
-              required
-              ref={confirmPasswordInputRef}
-            />
+            <InputGroup>
+              <Input
+                id="confirmPassword"
+                type={showConfirmPassword ? "text" : "password"}
+                placeholder="Enter confirm password"
+                ref={confirmPasswordInputRef}
+              />
+              <InputRightElement width="4.5rem">
+                <Button
+                  h="1.75rem"
+                  size="sm"
+                  background="#64b5f6"
+                  color="white"
+                  onClick={showConfirmPasswordHandler}
+                >
+                  {showConfirmPassword ? "Hide" : "Show"}
+                </Button>
+              </InputRightElement>
+            </InputGroup>
           </div>
           <div className={classes.actions}>
             {!isLoading && <Button type="submit">Create Account</Button>}

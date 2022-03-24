@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
+import { CompanyDetails } from "../models/CompanyDetails";
 import { User } from "../models/User";
 
 let logoutTimer: NodeJS.Timeout;
@@ -9,14 +10,16 @@ type AuthContextObj = {
   current_user: User | null;
   login: (user: User, expirationTime: string) => void;
   logout: () => void;
+  setCompanyDetails: (companyDetails: CompanyDetails) => void;
 };
 
 export const AuthContext = React.createContext<AuthContextObj>({
   token: null,
   isLoggedIn: false,
   current_user: null,
-  login: (user: User, expirationTime: string) => {},
+  login: () => {},
   logout: () => {},
+  setCompanyDetails: () => {}
 });
 
 const calculateRemainingTime = (expirationTime: string) => {
@@ -27,6 +30,14 @@ const calculateRemainingTime = (expirationTime: string) => {
 
   return remainingDuration;
 };
+
+const clearLocalStorage = () => {
+  localStorage.removeItem("user_id");
+  localStorage.removeItem("email");
+  localStorage.removeItem("name");
+  localStorage.removeItem("token");
+  localStorage.removeItem("expirationTime");
+}
 
 const retrieveStoredData = () => {
   const storedUserId = localStorage.getItem("user_id");
@@ -40,11 +51,7 @@ const retrieveStoredData = () => {
   const remainingTime = calculateRemainingTime(storedExpirationDate);
 
   if (remainingTime <= 3600) {
-    localStorage.removeItem("user_id");
-    localStorage.removeItem("email");
-    localStorage.removeItem("name");
-    localStorage.removeItem("token");
-    localStorage.removeItem("expirationTime");
+    clearLocalStorage();
     return null;
   }
 
@@ -75,6 +82,7 @@ const AuthContextProvider: React.FC = (props) => {
   const [email, setEmail] = useState<string>(initialEmail);
   const [name, setName] = useState<string>(initialName);
   const [token, setToken] = useState<string | null>(initialToken);
+  const [companyDetails, setCompanyDetails] = useState<CompanyDetails | null>(null);
 
   const userIsLoggedIn = !!token;
 
@@ -83,22 +91,20 @@ const AuthContextProvider: React.FC = (props) => {
     setEmail("");
     setName("");
     setToken(null);
-    localStorage.removeItem("user_id");
-    localStorage.removeItem("email");
-    localStorage.removeItem("name");
-    localStorage.removeItem("token");
-    localStorage.removeItem("expirationTime");
+    setCompanyDetails(null);
+    clearLocalStorage();
 
     if (logoutTimer) {
       clearTimeout(logoutTimer);
     }
   }, []);
 
-  const loginHandler = (user: User, expirationTime: string) => {
+  const loginHandler = useCallback((user: User, expirationTime: string) => {
     setUserId(user.user_id);
     setEmail(user.email);
     setName(user.name);
     setToken(user.token);
+    setCompanyDetails(null);
     localStorage.setItem("user_id", user.user_id);
     localStorage.setItem("email", user.email);
     localStorage.setItem("name", user.name);
@@ -108,7 +114,11 @@ const AuthContextProvider: React.FC = (props) => {
     const remainingTime = calculateRemainingTime(expirationTime);
 
     logoutTimer = setTimeout(logoutHandler, remainingTime);
-  };
+  }, [logoutHandler]);
+
+  const setCompanyDetailsHandler = useCallback((companyDetails: CompanyDetails) => {
+    setCompanyDetails(companyDetails);
+  }, []);
 
   useEffect(() => {
     if (storedData && storedData?.token) {
@@ -124,10 +134,11 @@ const AuthContextProvider: React.FC = (props) => {
       email: email,
       name: name,
       token: token ? token : "",
-      companyDetails: null
+      companyDetails: companyDetails
     },
     login: loginHandler,
     logout: logoutHandler,
+    setCompanyDetails: setCompanyDetailsHandler
   };
 
   return (

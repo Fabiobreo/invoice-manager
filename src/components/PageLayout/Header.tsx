@@ -1,18 +1,19 @@
 import { useContext } from "react";
-import { Link } from "react-router-dom";
+import { Link, useHistory } from "react-router-dom";
 
 import { AuthContext } from "../../store/auth-context";
 import classes from "./Header.module.css";
 
 const Header = () => {
   const authCtx = useContext(AuthContext);
+  const history = useHistory();
 
   const isLoggedIn = authCtx.isLoggedIn;
   const loggedUserName = authCtx.current_user?.name;
 
   const logoutHandler = () => {
     authCtx.logout();
-    // TODO: redirect the user
+    history.replace("/");
   };
 
   return (
@@ -24,7 +25,7 @@ const Header = () => {
         <ul>
           {!isLoggedIn && (
             <li>
-              <Link to="/auth">Login</Link>
+              <Link to="/login">Login</Link>
             </li>
           )}
           {isLoggedIn && (

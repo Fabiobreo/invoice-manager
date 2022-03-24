@@ -60,12 +60,8 @@ function useHttp(
       } catch (error) {
         let message;
         if (error instanceof Error) {
-          console.log("Error normale");
-          console.log(error);
           message = error.message;
         } else {
-          console.log("Error mia tanto normale");
-          console.log(error);
           message = String(error);
         }
         dispatch({
