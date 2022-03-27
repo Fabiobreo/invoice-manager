@@ -12,7 +12,7 @@ type State = {
   status: string | null;
 };
 
-function httpReducer(state: State, action: Action): State {
+const httpReducer = (state: State, action: Action): State => {
   if (action.type === "SEND") {
     return {
       data: null,
@@ -38,12 +38,12 @@ function httpReducer(state: State, action: Action): State {
   }
 
   return state;
-}
+};
 
-function useHttp(
+const useHttp = (
   requestFunction: (parameter: any) => Promise<any>,
   startWithPending = false
-) {
+) => {
   const [httpState, dispatch] = useReducer(httpReducer, {
     status: startWithPending ? "pending" : null,
     data: null,
@@ -77,6 +77,6 @@ function useHttp(
     sendRequest,
     ...httpState,
   };
-}
+};
 
 export default useHttp;

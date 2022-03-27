@@ -1,7 +1,8 @@
 import { Fragment, useContext, useEffect, useState } from "react";
-import CompanyDetailsForm from "../components/Auth/CompanyDetailsForm";
-import ErrorModal, { ErrorType } from "../components/UI/ErrorModal";
-import LoadingSpinner from "../components/UI/LoadingSpinner";
+import CompanyDetailsForm from "../components/auth/CompanyDetailsForm";
+import Dashboard from "../components/main/Dashboard";
+import ErrorModal, { ErrorType } from "../components/ui/ErrorModal";
+import LoadingSpinner from "../components/ui/LoadingSpinner";
 import useHttp from "../hooks/use-http";
 import { getCompanyDetails } from "../lib/api";
 import { AuthContext } from "../store/auth-context";
@@ -76,7 +77,7 @@ const HomePage = () => {
         </div>
       )}
       {!isLoading && needCompanyDetails && <CompanyDetailsForm />}
-      {isLoggedIn && !needCompanyDetails && <div className="centered">THE REAL DEAL</div>}
+      {isLoggedIn && !needCompanyDetails && <Dashboard />}
     </Fragment>
   );
 };

@@ -11,8 +11,8 @@ import { useHistory } from "react-router-dom";
 import useHttp from "../../hooks/use-http";
 import { login } from "../../lib/api";
 import { AuthContext } from "../../store/auth-context";
-import Card from "../UI/Card";
-import ErrorModal, { ErrorType } from "../UI/ErrorModal";
+import Card from "../ui/Card";
+import ErrorModal, { ErrorType } from "../ui/ErrorModal";
 
 import classes from "./Login.module.css";
 
@@ -37,7 +37,7 @@ const Login: React.FC<{ switchAuthMode: () => void }> = (props) => {
       setIsLoading(false);
       const expirationTime = new Date(
         new Date().getTime() + 2 * 60 * 60 * 1000
-      ); // TODO CHANGE HERE, EXPIRES LOGIN IN TWO HOURS
+      );
       authCtx.login(loginData, expirationTime.toISOString());
       history.replace("/");
     } else if (loginError) {
