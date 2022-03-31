@@ -37,6 +37,10 @@ const clearLocalStorage = () => {
   localStorage.removeItem("name");
   localStorage.removeItem("token");
   localStorage.removeItem("expirationTime");
+  localStorage.removeItem("companyName");
+  localStorage.removeItem("companyAddress");
+  localStorage.removeItem("companyVat");
+  localStorage.removeItem("companyReg");
 }
 
 const retrieveStoredData = () => {
@@ -44,8 +48,13 @@ const retrieveStoredData = () => {
   const storedEmail = localStorage.getItem("email");
   const storedName = localStorage.getItem("name");
   const storedToken = localStorage.getItem("token");
+  
+  const storedCompanyName = localStorage.getItem("companyName");
+  const storedCompanyAddress =localStorage.getItem("companyAddress");
+  const storedCompanyVat =localStorage.getItem("companyVat");
+  const storedCompanyReg =localStorage.getItem("companyReg");
   let storedExpirationDate = localStorage.getItem("expirationTime");
-  if (storedExpirationDate == null) {
+  if (storedExpirationDate === null) {
     storedExpirationDate = "";
   }
   const remainingTime = calculateRemainingTime(storedExpirationDate);
@@ -59,6 +68,10 @@ const retrieveStoredData = () => {
     userId: storedUserId ? storedUserId : "",
     email: storedEmail ? storedEmail : "",
     name: storedName ? storedName : "",
+    companyName: storedCompanyName ? storedCompanyName : "",
+    companyAddress: storedCompanyAddress ? storedCompanyAddress : "",
+    companyVat: storedCompanyVat ? storedCompanyVat : "",
+    companyReg: storedCompanyReg ? storedCompanyReg : "",
     token: storedToken,
     duration: remainingTime,
   };
@@ -70,19 +83,29 @@ const AuthContextProvider: React.FC = (props) => {
   let initialUserId = "";
   let initialEmail = "";
   let initialName = "";
+  let initialCompanyDetails = null;
   let initialToken = null;
   if (storedData) {
     initialUserId = storedData.userId;
     initialEmail = storedData.email;
     initialName = storedData.name;
     initialToken = storedData.token;
+    if (storedData.companyName !== "")
+    {
+      initialCompanyDetails = {
+        name: storedData.companyName,
+        address: storedData.companyAddress,
+        vatNumber: storedData.companyVat,
+        regNumber: storedData.companyReg
+      }
+    }
   }
 
   const [userId, setUserId] = useState<string>(initialUserId);
   const [email, setEmail] = useState<string>(initialEmail);
   const [name, setName] = useState<string>(initialName);
   const [token, setToken] = useState<string | null>(initialToken);
-  const [companyDetails, setCompanyDetails] = useState<CompanyDetails | null>(null);
+  const [companyDetails, setCompanyDetails] = useState<CompanyDetails | null>(initialCompanyDetails);
 
   const userIsLoggedIn = !!token;
 
@@ -104,7 +127,6 @@ const AuthContextProvider: React.FC = (props) => {
     setEmail(user.email);
     setName(user.name);
     setToken(user.token);
-    setCompanyDetails(null);
     localStorage.setItem("user_id", user.user_id);
     localStorage.setItem("email", user.email);
     localStorage.setItem("name", user.name);
@@ -118,6 +140,10 @@ const AuthContextProvider: React.FC = (props) => {
 
   const setCompanyDetailsHandler = useCallback((companyDetails: CompanyDetails) => {
     setCompanyDetails(companyDetails);
+    localStorage.setItem("companyName", companyDetails.name);
+    localStorage.setItem("companyAddress", companyDetails.address);
+    localStorage.setItem("companyVat", companyDetails.vatNumber);
+    localStorage.setItem("companyReg", companyDetails.regNumber);
   }, []);
 
   useEffect(() => {

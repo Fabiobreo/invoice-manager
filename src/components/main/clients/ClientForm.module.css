@@ -1,7 +1,7 @@
 .clientForm {
     margin: 6rem auto;
-    width: 95%;
-    max-width: 25rem;
+    width: 100%;
+    max-width: 50rem;
     border-radius: 6px;
     background-color: #1976d2;
     box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
@@ -17,6 +17,22 @@
   
   .control {
     margin-bottom: 0.5rem;
+  }
+  
+  .row {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    width: 100%;
+  }
+  
+  .column {
+    display: flex;
+    flex-direction: column;
+    flex-basis: 100%;
+    flex: 1;
+    margin-left: 5px;
+    margin-right: 5px;
   }
   
   .control label {
@@ -71,4 +87,29 @@
     background-color: transparent;
     color: #2196f3;
   }
+  .spinner {
+    display: inline-block;
+    width: 80px;
+    height: 80px;
+  }
   
+  .spinner:after {
+    content: " ";
+    display: block;
+    width: 64px;
+    height: 64px;
+    margin: 8px;
+    border-radius: 50%;
+    border: 6px solid white;
+    border-color: white transparent white transparent;
+    animation: spinner 1.2s linear infinite;
+  }
+  
+  @keyframes spinner {
+    0% {
+      transform: rotate(0deg);
+    }
+    100% {
+      transform: rotate(360deg);
+    }
+  }

@@ -1,13 +1,17 @@
+import { ChevronLeftIcon } from "@chakra-ui/icons";
 import {
+  Box,
   Button,
   Center,
   Flex,
   FormLabel,
   Heading,
+  IconButton,
   Input,
   Spacer,
   useToast,
 } from "@chakra-ui/react";
+import { ChakraStylesConfig, Select } from "chakra-react-select";
 import {
   ChangeEvent,
   Fragment,
@@ -18,17 +22,66 @@ import {
 } from "react";
 import { useHistory } from "react-router-dom";
 import useHttp from "../../../hooks/use-http";
-import { postClient, putClient } from "../../../lib/api";
+import { getClients, postClient, putClient } from "../../../lib/api";
 import { Client } from "../../../models/Client";
+import { ClientComboBox } from "../../../models/ClientComboBox";
+import { ClientFormType } from "../../../models/ClientFormType";
+import { InvoiceFormType } from "../../../models/InvoiceFormType";
 import { AuthContext } from "../../../store/auth-context";
 import Card from "../../ui/Card";
 import ErrorModal, { ErrorType } from "../../ui/ErrorModal";
+import LoadingSpinner from "../../ui/LoadingSpinner";
 
 import classes from "./ClientForm.module.css";
 
-const ClientForm: React.FC<{ client?: Client }> = (props) => {
+const ClientForm: React.FC<ClientFormType> = (props) => {
+  const chakraStyles: ChakraStylesConfig = {
+    dropdownIndicator: (prev, { selectProps: { menuIsOpen } }) => ({
+      ...prev,
+      "> svg": {
+        transitionDuration: "normal",
+        transform: `rotate(${menuIsOpen ? -180 : 0}deg)`,
+      },
+    }),
+
+    control: (provided) => ({
+      ...provided,
+      background: "#e3f2fd",
+      font: "inherit",
+      color: "#1976d2",
+      borderRadius: "4px",
+      border: "1px solid white",
+      width: "100%",
+      textAlign: "left",
+      padding: "0.25rem",
+    }),
+
+    groupHeading: (provided) => ({
+      ...provided,
+      background: "#64b5f6",
+      color: "white",
+    }),
+
+    group: (provided) => ({
+      ...provided,
+      background: "#e3f2fd",
+      color: "#1976d2",
+    }),
+  };
+
   const authCtx = useContext(AuthContext);
+  const { token } = authCtx;
   const history = useHistory();
+  let loadAllClients = props.loadAllClients;
+  let editMode = props.isEditMode;
+
+  const state = history.location.state as ClientFormType;
+  if (state) {
+    loadAllClients = state.loadAllClients;
+    if (state.isEditMode) {
+      editMode = state.isEditMode;
+    }
+  }
 
   const [name, setName] = useState(props.client ? props.client!.name : "");
   const [email, setEmail] = useState(props.client ? props.client!.email : "");
@@ -46,8 +99,10 @@ const ClientForm: React.FC<{ client?: Client }> = (props) => {
   );
 
   const [isLoading, setIsLoading] = useState(false);
+  const [isClientsLoading, setIsClientsLoading] = useState(false);
   const [error, setError] = useState<ErrorType>();
-  const [isEditMode, setIsEditMode] = useState(false);
+  const [isEditMode, setIsEditMode] = useState(editMode);
+  const [clients, setClients] = useState<ClientComboBox[]>();
 
   const isReadOnly = !isEditMode && props.client ? true : false;
 
@@ -65,6 +120,13 @@ const ClientForm: React.FC<{ client?: Client }> = (props) => {
     status: putClientDetailsStatus,
     error: putClientDetailsError,
   } = useHttp(putClient);
+
+  const {
+    sendRequest: sendGetClientsRequest,
+    data: getClientsDetailsData,
+    status: getClientsDetailsStatus,
+    error: getClientsDetailsError,
+  } = useHttp(getClients);
 
   const errorHandler = useCallback(() => {
     setError(undefined);
@@ -108,6 +170,58 @@ const ClientForm: React.FC<{ client?: Client }> = (props) => {
     });
   };
 
+  const addInvoiceHandler = () => {
+    history.push({
+      pathname: "/invoices/add",
+      state: { client: props.client, loadAllClients: false } as InvoiceFormType,
+    });
+  };
+
+  useEffect(() => {
+    if (loadAllClients) {
+      setIsClientsLoading(true);
+      sendGetClientsRequest({
+        token: token,
+        params: {
+          orderBy: "clientName",
+          order: "asc",
+        },
+      });
+    }
+  }, [sendGetClientsRequest, token, loadAllClients]);
+
+  useEffect(() => {
+    if (getClientsDetailsStatus === "completed" && !getClientsDetailsError) {
+      setIsClientsLoading(false);
+      setClients([
+        {
+          label: "Clients",
+          options: getClientsDetailsData.clients.map((client: Client) => {
+            return {
+              value: { client: client },
+              label: client.name + " | " + client.companyDetails.name,
+            };
+          }),
+        },
+      ]);
+    } else if (getClientsDetailsError) {
+      setIsClientsLoading(false);
+    }
+  }, [getClientsDetailsStatus, getClientsDetailsData, getClientsDetailsError]);
+
+  const selectHandler = (item: any) => {
+    const client = item.value.client;
+    setName(client.name);
+    setEmail(client.email);
+    setCompanyName(client.companyDetails.name);
+    setAddress(client.companyDetails.address);
+    setVatNumber(client.companyDetails.vatNumber);
+    setRegNumber(client.companyDetails.regNumber);
+    if (props.onSelectedClient) {
+      props.onSelectedClient(client);
+    }
+  };
+
   useEffect(() => {
     if (postClientDetailsStatus === "completed" && !postClientDetailsError) {
       setIsLoading(false);
@@ -123,7 +237,7 @@ const ClientForm: React.FC<{ client?: Client }> = (props) => {
           duration: 5000,
           isClosable: true,
         });
-        history.replace(`/clients/${postClientDetailsData.client.user_id}`);
+        history.push(`/clients/${postClientDetailsData.client.id}`);
       }
     } else if (postClientDetailsError) {
       setIsLoading(false);
@@ -145,14 +259,14 @@ const ClientForm: React.FC<{ client?: Client }> = (props) => {
   useEffect(() => {
     if (putClientDetailsStatus === "completed" && !putClientDetailsError) {
       setIsLoading(false);
-        toast({
-          title: "Client update.",
-          description: "Client successfully updated.",
-          status: "success",
-          duration: 5000,
-          isClosable: true,
-        });
-        setIsEditMode(false);
+      toast({
+        title: "Client updated.",
+        description: "Client successfully updated.",
+        status: "success",
+        duration: 5000,
+        isClosable: true,
+      });
+      setIsEditMode(false);
     } else if (putClientDetailsError) {
       setIsLoading(false);
       setError({
@@ -161,12 +275,11 @@ const ClientForm: React.FC<{ client?: Client }> = (props) => {
         onConfirm: errorHandler,
       });
     }
-  }, [
-    putClientDetailsStatus,
-    putClientDetailsError,
-    errorHandler,
-    toast,
-  ]);
+  }, [putClientDetailsStatus, putClientDetailsError, errorHandler, toast]);
+
+  const addNewClientHandler = () => {
+    history.push("/clients/add");
+  };
 
   const submitHandler = (event: React.FormEvent) => {
     event.preventDefault();
@@ -241,23 +354,21 @@ const ClientForm: React.FC<{ client?: Client }> = (props) => {
           },
         },
       });
-    }
-    else
-    {
+    } else {
       sendPutClientRequest({
-      token: authCtx.current_user!.token,
-      client: {
-        id: props.client.id,
-        name: name,
-        email: email,
-        companyDetails: {
-          name: companyName,
-          address: address,
-          vatNumber: vatNumber,
-          regNumber: regNumber,
+        token: authCtx.current_user!.token,
+        client: {
+          id: props.client.id,
+          name: name,
+          email: email,
+          companyDetails: {
+            name: companyName,
+            address: address,
+            vatNumber: vatNumber,
+            regNumber: regNumber,
+          },
         },
-      },
-    });
+      });
     }
   };
 
@@ -270,14 +381,50 @@ const ClientForm: React.FC<{ client?: Client }> = (props) => {
           onConfirm={errorHandler}
         />
       )}
-      <Card className={classes.clientForm}>
+      <Card
+        className={`${classes.clientForm} ${
+          props.className ? props.className : ""
+        }`}
+      >
         <div className={classes.control}>
           <Flex>
-            <Spacer />
+            {props.showGoBack && (
+              <Center>
+                <IconButton
+                  aria-label="Go Back"
+                  size="sm"
+                  background="#64b5f6"
+                  color="white"
+                  ml={1}
+                  mt={1}
+                  onClick={() => history.goBack()}
+                >
+                  <ChevronLeftIcon h={6} w={6} />
+                </IconButton>
+              </Center>
+            )}
             <Spacer />
             <Heading>Client</Heading>
             <Spacer />
-            {props.client !== undefined && (
+          </Flex>
+        </div>
+        {props.client !== undefined && props.isReadOnly === false && (
+          <div className={classes.control}>
+            <Flex ml={1} mr={1}>
+              <Center>
+                <Button
+                  type="button"
+                  h="2.25rem"
+                  w="7rem"
+                  size="md"
+                  background="#64b5f6"
+                  color="white"
+                  onClick={addInvoiceHandler}
+                >
+                  Add Invoice
+                </Button>
+              </Center>
+              <Spacer />
               <Center>
                 <Button
                   type="button"
@@ -291,111 +438,183 @@ const ClientForm: React.FC<{ client?: Client }> = (props) => {
                   {!isEditMode ? "Edit" : "Cancel"}
                 </Button>
               </Center>
-            )}
-            {props.client === undefined && <Spacer />}
-          </Flex>
-        </div>
+            </Flex>
+          </div>
+        )}
+        {loadAllClients && isClientsLoading && (
+          <LoadingSpinner className={classes.spinner} />
+        )}
+        {loadAllClients && !isClientsLoading && (
+          <div>
+            <Flex mb={2} mt={3} ml={1}>
+              <Box flex="1" mr={2}>
+                <Select
+                  name="clientsList"
+                  classNamePrefix="chakra-react-select"
+                  options={clients}
+                  placeholder="Select a client..."
+                  closeMenuOnSelect={true}
+                  chakraStyles={chakraStyles}
+                  onChange={selectHandler}
+                />
+              </Box>
+              <Center>
+                <Button
+                  type="button"
+                  h="2.25rem"
+                  w="8rem"
+                  mr={1}
+                  size="md"
+                  background="#64b5f6"
+                  color="white"
+                  onClick={addNewClientHandler}
+                >
+                  Add new client
+                </Button>
+              </Center>
+            </Flex>
+          </div>
+        )}
 
-        <form onSubmit={submitHandler}>
-          <div className={classes.control}>
-            <FormLabel fontWeight="bold" htmlFor="name">
-              Name
-            </FormLabel>
-            <Input
-              type="text"
-              id="name"
-              placeholder="Enter name"
-              required
-              readOnly={isReadOnly}
-              value={name}
-              onChange={onNameChange}
-            />
-          </div>
-          <div className={classes.control}>
-            <FormLabel fontWeight="bold" htmlFor="email">
-              Email
-            </FormLabel>
-            <Input
-              type="email"
-              id="email"
-              placeholder="Enter email"
-              required
-              readOnly={isReadOnly}
-              value={email}
-              onChange={onEmailChange}
-            />
-          </div>
-          <div className={classes.control}>
-            <FormLabel fontWeight="bold" htmlFor="companyName">
-              Company name
-            </FormLabel>
-            <Input
-              type="text"
-              id="companyName"
-              placeholder="Enter company name"
-              required
-              readOnly={isReadOnly}
-              value={companyName}
-              onChange={onCompanyNameChange}
-            />
-          </div>
-          <div className={classes.control}>
-            <FormLabel fontWeight="bold" htmlFor="address">
-              Company address
-            </FormLabel>
-            <Input
-              type="text"
-              id="address"
-              placeholder="Enter company address"
-              required
-              readOnly={isReadOnly}
-              value={address}
-              onChange={onAddressChange}
-            />
-          </div>
-          <div className={classes.control}>
-            <FormLabel fontWeight="bold" htmlFor="vatNumber">
-              Company Tax/VAT number
-            </FormLabel>
-            <Input
-              type="text"
-              id="vatNumber"
-              placeholder="Enter company tax/vat number"
-              required
-              readOnly={isReadOnly}
-              value={vatNumber}
-              onChange={onVatNumberChange}
-            />
-          </div>
-          <div className={classes.control}>
-            <FormLabel fontWeight="bold" htmlFor="regNumber">
-              Company registration number
-            </FormLabel>
-            <Input
-              type="text"
-              id="regNumber"
-              placeholder="Enter company registration number"
-              required
-              readOnly={isReadOnly}
-              value={regNumber}
-              onChange={onRegNumberChange}
-            />
-          </div>
+        {!isClientsLoading && (
+          <form onSubmit={submitHandler}>
+            <div className={classes.control}>
+              <div className={classes.row}>
+                <div className={classes.column}>
+                  <FormLabel fontWeight="bold" htmlFor="name">
+                    Name
+                  </FormLabel>
+                </div>
+                <div className={classes.column}>
+                  <FormLabel fontWeight="bold" htmlFor="email">
+                    Email
+                  </FormLabel>
+                </div>
+              </div>
 
-          <div className={classes.actions}>
-            {!isLoading && props.client === undefined && (
-              <Button type="submit">Submit</Button>
+              <div className={classes.row}>
+                <div className={classes.column}>
+                  <Input
+                    type="text"
+                    id="name"
+                    placeholder="Enter name"
+                    required
+                    readOnly={isReadOnly || loadAllClients}
+                    value={name}
+                    onChange={onNameChange}
+                  />
+                </div>
+                <div className={classes.column}>
+                  <Input
+                    type="email"
+                    id="email"
+                    placeholder="Enter email"
+                    required
+                    readOnly={isReadOnly || loadAllClients}
+                    value={email}
+                    onChange={onEmailChange}
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div className={classes.control}>
+              <div className={classes.row}>
+                <div className={classes.column}>
+                  <FormLabel fontWeight="bold" htmlFor="companyName">
+                    Company name
+                  </FormLabel>
+                </div>
+                <div className={classes.column}>
+                  <FormLabel fontWeight="bold" htmlFor="address">
+                    Company address
+                  </FormLabel>
+                </div>
+              </div>
+
+              <div className={classes.row}>
+                <div className={classes.column}>
+                  <Input
+                    type="text"
+                    id="companyName"
+                    placeholder="Enter company name"
+                    required
+                    readOnly={isReadOnly || loadAllClients}
+                    value={companyName}
+                    onChange={onCompanyNameChange}
+                  />
+                </div>
+                <div className={classes.column}>
+                  <Input
+                    type="text"
+                    id="address"
+                    placeholder="Enter company address"
+                    required
+                    readOnly={isReadOnly || loadAllClients}
+                    value={address}
+                    onChange={onAddressChange}
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div className={classes.control}>
+              <div className={classes.row}>
+                <div className={classes.column}>
+                  <FormLabel fontWeight="bold" htmlFor="vatNumber">
+                    Company Tax/VAT number
+                  </FormLabel>
+                </div>
+                <div className={classes.column}>
+                  <FormLabel fontWeight="bold" htmlFor="regNumber">
+                    Company registration number
+                  </FormLabel>
+                </div>
+              </div>
+
+              <div className={classes.row}>
+                <div className={classes.column}>
+                  <Input
+                    type="text"
+                    id="vatNumber"
+                    placeholder="Enter company tax/vat number"
+                    required
+                    readOnly={isReadOnly || loadAllClients}
+                    value={vatNumber}
+                    onChange={onVatNumberChange}
+                  />
+                </div>
+                <div className={classes.column}>
+                  <Input
+                    type="text"
+                    id="regNumber"
+                    placeholder="Enter company registration number"
+                    required
+                    readOnly={isReadOnly || loadAllClients}
+                    value={regNumber}
+                    onChange={onRegNumberChange}
+                  />
+                </div>
+              </div>
+            </div>
+
+            {!loadAllClients && (
+              <div className={classes.actions}>
+                {!isLoading && props.client === undefined && (
+                  <Button type="submit">Submit</Button>
+                )}
+                {!isLoading && props.client !== undefined && !isReadOnly && (
+                  <Button type="submit">Update</Button>
+                )}
+                {isLoading && (
+                  <Button isLoading loadingText="Submitting">
+                    Submitting
+                  </Button>
+                )}
+              </div>
             )}
-            {!isLoading && props.client !== undefined && !isReadOnly && (
-              <Button type="submit">Update</Button>
-            )}
-            {isLoading && (
-              <Button isLoading loadingText="Submitting">
-                Submitting
-              </Button>
-            )}
-          </div>
-        </form>
+          </form>
+        )}
       </Card>
     </Fragment>
   );

@@ -133,14 +133,35 @@ export const putCompanyDetails = async (userData: {
   return res;
 };
 
-export const getClients = async (userToken: string) => {
-  const response = await fetch(`${SERVER_DOMAIN}/clients`, {
-    method: "GET",
-    headers: new Headers({
-      "x-access-token": userToken,
-      "Content-Type": "application/json",
-    }),
-  });
+export const getClients = async (userData: {
+  token: string;
+  params: {
+    orderBy: string;
+    order: string;
+    limit: number;
+    offset: number;
+  };
+}) => {
+  const queryParams = {
+    sort: {
+      [userData.params.orderBy]: userData.params.order,
+    },
+    limit: userData.params.limit,
+    offset: userData.params.offset,
+  };
+
+  const encodeParamsString = encodeURIComponent(JSON.stringify(queryParams));
+
+  const response = await fetch(
+    `${SERVER_DOMAIN}/clients?params=${encodeParamsString}`,
+    {
+      method: "GET",
+      headers: new Headers({
+        "x-access-token": userData.token,
+        "Content-Type": "application/json",
+      }),
+    }
+  );
 
   const data = await response.text();
 
@@ -148,19 +169,28 @@ export const getClients = async (userToken: string) => {
     throw new Error(data ? data : "Could not fetch clients list.");
   }
 
-  return JSON.parse(data);
+  let res;
+  try {
+    res = JSON.parse(data);
+    let check = res.hasOwnProperty("clients");
+    check &= res.hasOwnProperty("total");
+    if (!check) {
+      throw new Error();
+    }
+  } catch (error) {
+    throw new Error("Response from the server is not what expected.");
+  }
+
+  return res;
 };
 
-export const getClient = async (userData: {
-  token: string;
-  id: string;
-}) => {
+export const getClient = async (userData: { token: string; id: string }) => {
   const response = await fetch(`${SERVER_DOMAIN}/clients/${userData.id}`, {
     method: "GET",
     headers: new Headers({
       "x-access-token": userData.token,
       "Content-Type": "application/json",
-    })
+    }),
   });
 
   const data = await response.text();
@@ -182,7 +212,7 @@ export const getClient = async (userData: {
   }
 
   return res;
-}
+};
 
 export const postClient = async (userData: {
   token: string;
@@ -225,7 +255,7 @@ export const postClient = async (userData: {
 export const putClient = async (userData: {
   token: string;
   client: {
-    id: string
+    id: string;
     name: string;
     email: string;
     companyDetails: CompanyDetails;
@@ -251,6 +281,173 @@ export const putClient = async (userData: {
     res = JSON.parse(data);
     let check = res.hasOwnProperty("success");
     check &= res.hasOwnProperty("client");
+    if (!check) {
+      throw new Error();
+    }
+  } catch (error) {
+    throw new Error("Response from the server is not what expected.");
+  }
+
+  return res;
+};
+
+export const getInvoices = async (userData: {
+  token: string;
+  params: {
+    filter: string;
+    orderBy: string;
+    order: string;
+    limit: number;
+    offset: number;
+  };
+}) => {
+  const queryParams = {
+    filter: {
+      clientId: userData.params.filter,
+    },
+    sort: {
+      [userData.params.orderBy]: userData.params.order,
+    },
+    limit: userData.params.limit,
+    offset: userData.params.offset,
+  };
+
+  const encodeParamsString = encodeURIComponent(JSON.stringify(queryParams));
+  const response = await fetch(
+    `${SERVER_DOMAIN}/invoices?params=${encodeParamsString}`,
+    {
+      method: "GET",
+      headers: new Headers({
+        "x-access-token": userData.token,
+        "Content-Type": "application/json",
+      }),
+    }
+  );
+
+  const data = await response.text();
+
+  if (!response.ok) {
+    throw new Error(data ? data : "Could not fetch invoices list.");
+  }
+
+  let res;
+  try {
+    res = JSON.parse(data);
+    let check = res.hasOwnProperty("invoices");
+    check &= res.hasOwnProperty("total");
+    if (!check) {
+      throw new Error();
+    }
+  } catch (error) {
+    throw new Error("Response from the server is not what expected.");
+  }
+
+  return res;
+};
+
+export const getInvoice = async (userData: { token: string; id: string }) => {
+  const response = await fetch(`${SERVER_DOMAIN}/invoices/${userData.id}`, {
+    method: "GET",
+    headers: new Headers({
+      "x-access-token": userData.token,
+      "Content-Type": "application/json",
+    }),
+  });
+
+  const data = await response.text();
+
+  if (!response.ok) {
+    throw new Error(data ? data : "Could not fetch invoice.");
+  }
+
+  let res;
+  try {
+    res = JSON.parse(data);
+    let check = res.hasOwnProperty("success");
+    check &= res.hasOwnProperty("invoice");
+    if (!check) {
+      throw new Error();
+    }
+  } catch (error) {
+    throw new Error("Response from the server is not what expected.");
+  }
+
+  return res;
+};
+
+export const postInvoice = async (userData: {
+  token: string;
+  invoice: {
+    invoice_number: string;
+    client_id: string;
+    date: number;
+    value: number;
+    projectCode: string;
+    meta: Record<string, any>;
+  };
+}) => {
+  const response = await fetch(`${SERVER_DOMAIN}/invoices`, {
+    method: "POST",
+    body: JSON.stringify(userData.invoice),
+    headers: new Headers({
+      "x-access-token": userData.token,
+      "Content-Type": "application/json",
+    }),
+  });
+
+  const data = await response.text();
+
+  if (!response.ok) {
+    throw new Error(data ? data : "Could not post new invoice.");
+  }
+
+  let res;
+  try {
+    res = JSON.parse(data);
+    let check = res.hasOwnProperty("success");
+    check &= res.hasOwnProperty("invoice");
+    if (!check) {
+      throw new Error();
+    }
+  } catch (error) {
+    throw new Error("Response from the server is not what expected.");
+  }
+
+  return res;
+};
+
+export const putInvoice = async (userData: {
+  token: string;
+  invoice: {
+    id: string;
+    invoice_number: string;
+    client_id: string;
+    date: number;
+    value: number;
+    projectCode: string;
+    meta: Record<string, any>;
+  };
+}) => {
+  const response = await fetch(`${SERVER_DOMAIN}/invoices`, {
+    method: "PUT",
+    body: JSON.stringify(userData.invoice),
+    headers: new Headers({
+      "x-access-token": userData.token,
+      "Content-Type": "application/json",
+    }),
+  });
+
+  const data = await response.text();
+
+  if (!response.ok) {
+    throw new Error(data ? data : "Could not update client.");
+  }
+
+  let res;
+  try {
+    res = JSON.parse(data);
+    let check = res.hasOwnProperty("success");
+    check &= res.hasOwnProperty("invoice");
     if (!check) {
       throw new Error();
     }

@@ -1,0 +1,8 @@
+.clientDetailsInvoice {
+  margin: -4rem auto;
+  width: 100%;
+  max-width: 58rem;
+  border-radius: 8px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+  padding: 1rem;
+}

@@ -1,9 +1,5 @@
 @import url("https://fonts.googleapis.com/css2?family=Lato:wght@700&family=Open+Sans:wght@400;700&display=swap");
 
-* {
-  box-sizing: border-box;
-}
-
 body {
   font-family: "Open Sans", "Lato", sans-serif;
   margin: 0;
@@ -18,41 +14,29 @@ body {
   align-items: center;
 }
 
-.focused {
-  font-size: 3rem;
-  font-weight: bold;
-  color: white;
+@media all {
+  .page-break {
+    display: none;
+  }
 }
 
-.btn {
-  text-decoration: none;
-  background-color: teal;
-  color: white;
-  border-radius: 4px;
-  padding: 0.75rem 1.5rem;
-  border: 1px solid teal;
-  cursor: pointer;
+@media print {
+  html, body {
+    height: initial !important;
+    overflow: initial !important;
+    -webkit-print-color-adjust: exact;
+  }
 }
 
-.btn:hover,
-.btn:active {
-  background-color: #11acac;
-  border-color: #11acac;
+@media print {
+  .page-break {
+    margin-top: 1rem;
+    display: block;
+    page-break-before: auto;
+  }
 }
 
-.btn--flat {
-  cursor: pointer;
-  font: inherit;
-  color: teal;
-  border: none;
-  background-color: none;
-  text-decoration: none;
-  padding: 0.75rem 1.5rem;
-  border-radius: 4px;
-}
-
-.btn--flat:hover,
-.btn--flat:active {
-  background-color: teal;
-  color: white;
+@page {
+  size: auto;
+  margin: 20mm;
 }

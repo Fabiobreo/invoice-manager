@@ -1,4 +1,4 @@
-import React, { Fragment } from "react";
+import React, { Fragment, useEffect, useState } from "react";
 import { useTable, usePagination, useSortBy, useFlexLayout } from "react-table";
 import {
   Table,
@@ -11,11 +11,6 @@ import {
   IconButton,
   Text,
   Tooltip,
-  NumberInput,
-  NumberInputField,
-  NumberInputStepper,
-  NumberIncrementStepper,
-  NumberDecrementStepper,
   Button,
   Center,
   Spacer,
@@ -28,7 +23,6 @@ import {
 } from "@chakra-ui/icons";
 import { ChevronUpIcon, ChevronDownIcon } from "@chakra-ui/icons";
 import LoadingSpinner from "./LoadingSpinner";
-import { useHistory } from "react-router-dom";
 
 const UITable: React.FC<{
   columns: Array<any>;
@@ -36,8 +30,16 @@ const UITable: React.FC<{
   isLoading: boolean;
   error: string | null;
   title: string;
+  isShowAllVisible: boolean;
   onShowAll?: () => void;
+  isAddNewVisible: boolean;
   onAddNew?: () => void;
+  onRowClick: (row: any) => void;
+  totalPages: number;
+  currentPage: number;
+  onChangePage?: (newPage: number) => void;
+  showPagination: boolean;
+  onSort?: (sort: { sortBy: string; sort: string }) => void;
 }> = (props) => {
   const cellProps = (props: any, { cell }: any) =>
     getStyles(props, cell.column.align);
@@ -62,7 +64,7 @@ const UITable: React.FC<{
     () => ({
       minWidth: 70,
       width: 70,
-      maxWidth: 140,
+      maxWidth: 200,
     }),
     []
   );
@@ -80,23 +82,45 @@ const UITable: React.FC<{
     gotoPage,
     nextPage,
     previousPage,
-    state: { pageIndex },
+    state: { sortBy },
   } = useTable(
     {
       columns: props.columns,
       data: props.data,
       defaultColumn,
+      manualPagination: true,
+      manualSortBy: true,
+      pageCount: props.totalPages,
     },
     useSortBy,
     usePagination,
     useFlexLayout
   );
 
-  const history = useHistory();
+  const [currentPage, setCurrentPage] = useState(props.currentPage);
+  const { onSort } = props;
 
-  const onRowClick = (row: any) => {
-    history.push(`/clients/${row.id}`);
-  };
+  useEffect(() => {
+    if (sortBy.length > 0) {
+      if (onSort) {
+        onSort({
+          sortBy: sortBy[0].id,
+          sort: sortBy[0].desc ? "desc" : "asc",
+        });
+      }
+    } else {
+      if (onSort) {
+        onSort({
+          sortBy: "",
+          sort: "",
+        });
+      }
+    }
+  }, [sortBy, onSort]);
+
+  useEffect(() => {
+    setCurrentPage(props.currentPage);
+  }, [props.currentPage]);
 
   return (
     <Fragment>
@@ -111,33 +135,38 @@ const UITable: React.FC<{
             <Th colSpan={props.columns.length}>
               <Flex>
                 <Center>
-                  <Text fontSize="md" mb={2}>
+                  <Text fontSize="lg" mb={2}>
                     {props.title}
                   </Text>
                 </Center>
                 <Spacer />
-                <Button
-                  type="button"
-                  h="1.75rem"
-                  size="sm"
-                  background="#64b5f6"
-                  color="white"
-                  onClick={props.onAddNew}
-                >
-                  Add new
-                </Button>
-                <Button
-                  type="button"
-                  h="1.75rem"
-                  ml={4}
-                  mb={2}
-                  size="sm"
-                  background="#64b5f6"
-                  color="white"
-                  onClick={props.onShowAll}
-                >
-                  Show all
-                </Button>
+                {props.isAddNewVisible && (
+                  <Button
+                    type="button"
+                    h="1.75rem"
+                    mb={2}
+                    size="sm"
+                    background="#64b5f6"
+                    color="white"
+                    onClick={props.onAddNew}
+                  >
+                    Add new
+                  </Button>
+                )}
+                {props.isShowAllVisible && (
+                  <Button
+                    type="button"
+                    h="1.75rem"
+                    ml={4}
+                    mb={2}
+                    size="sm"
+                    background="#64b5f6"
+                    color="white"
+                    onClick={props.onShowAll}
+                  >
+                    Show all
+                  </Button>
+                )}
               </Flex>
             </Th>
           </Tr>
@@ -173,15 +202,18 @@ const UITable: React.FC<{
                 return (
                   <Tr
                     {...row.getRowProps()}
-                    onClick={() => onRowClick(row.original)}
-                    cursor={"pointer"}
                     _hover={{ bg: "blue.50" }}
+                    cursor={"pointer"}
                   >
                     {row.cells.map((cell) => {
                       return (
                         <Td
                           wordBreak="break-all"
                           {...cell.getCellProps(cellProps)}
+                          onClick={() => {
+                            if (cell.column.id !== "more")
+                              props.onRowClick(row.original);
+                          }}
                         >
                           {cell.render("Cell")}
                         </Td>
@@ -239,13 +271,17 @@ const UITable: React.FC<{
         )}
       </Table>
 
-      {!props.isLoading && props.data.length > 0 && (
+      {!props.isLoading && props.data.length > 0 && props.showPagination && (
         <Flex justifyContent="space-between" m={4} alignItems="center">
           <Flex>
             <Tooltip label="First Page">
               <IconButton
                 aria-label="First Page"
-                onClick={() => gotoPage(0)}
+                onClick={() => {
+                  gotoPage(0);
+                  setCurrentPage(1);
+                  if (props.onChangePage) props.onChangePage(1);
+                }}
                 isDisabled={!canPreviousPage}
                 icon={<ArrowLeftIcon h={3} w={3} />}
                 mr={4}
@@ -254,7 +290,11 @@ const UITable: React.FC<{
             <Tooltip label="Previous Page">
               <IconButton
                 aria-label="Previous Page"
-                onClick={previousPage}
+                onClick={() => {
+                  previousPage();
+                  setCurrentPage(currentPage - 1);
+                  if (props.onChangePage) props.onChangePage(currentPage - 1);
+                }}
                 isDisabled={!canPreviousPage}
                 icon={<ChevronLeftIcon h={6} w={6} />}
               />
@@ -265,39 +305,24 @@ const UITable: React.FC<{
             <Text flexShrink="0" mr={8}>
               Page{" "}
               <Text fontWeight="bold" as="span">
-                {pageIndex + 1}
+                {currentPage}
               </Text>{" "}
               of{" "}
               <Text fontWeight="bold" as="span">
                 {pageOptions.length}
               </Text>
             </Text>
-            <Text flexShrink="0">Go to page:</Text>{" "}
-            <NumberInput
-              ml={2}
-              mr={8}
-              w={28}
-              min={1}
-              max={pageOptions.length}
-              onChange={(value) => {
-                const page = value ? +value - 1 : 0;
-                gotoPage(page);
-              }}
-              defaultValue={pageIndex + 1}
-            >
-              <NumberInputField />
-              <NumberInputStepper>
-                <NumberIncrementStepper />
-                <NumberDecrementStepper />
-              </NumberInputStepper>
-            </NumberInput>
           </Flex>
 
           <Flex>
             <Tooltip label="Next Page">
               <IconButton
                 aria-label="Next Page"
-                onClick={nextPage}
+                onClick={() => {
+                  nextPage();
+                  setCurrentPage(currentPage + 1);
+                  if (props.onChangePage) props.onChangePage(currentPage + 1);
+                }}
                 isDisabled={!canNextPage}
                 icon={<ChevronRightIcon h={6} w={6} />}
               />
@@ -305,7 +330,11 @@ const UITable: React.FC<{
             <Tooltip label="Last Page">
               <IconButton
                 aria-label="Last Page"
-                onClick={() => gotoPage(pageCount - 1)}
+                onClick={() => {
+                  gotoPage(pageCount - 1);
+                  setCurrentPage(pageCount);
+                  if (props.onChangePage) props.onChangePage(pageCount);
+                }}
                 isDisabled={!canNextPage}
                 icon={<ArrowRightIcon h={3} w={3} />}
                 ml={4}

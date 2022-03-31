@@ -39,7 +39,6 @@ const Login: React.FC<{ switchAuthMode: () => void }> = (props) => {
         new Date().getTime() + 2 * 60 * 60 * 1000
       );
       authCtx.login(loginData, expirationTime.toISOString());
-      history.replace("/");
     } else if (loginError) {
       setIsLoading(false);
       setError({

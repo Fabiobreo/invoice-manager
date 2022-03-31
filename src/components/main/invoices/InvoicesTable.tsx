@@ -1,22 +1,24 @@
-import React, { useState, useContext, useEffect, useCallback } from "react";
+import { useState, useContext, useEffect, useCallback } from "react";
 import { useHistory } from "react-router-dom";
 import useHttp from "../../../hooks/use-http";
-import { getClients } from "../../../lib/api";
+import { getInvoices } from "../../../lib/api";
 import { Client } from "../../../models/Client";
+import { Invoice, TotalInvoice } from "../../../models/Invoice";
 import { AuthContext } from "../../../store/auth-context";
 import UITable from "../../ui/UITable";
-import ClientHeader from "./ClientHeader";
+import InvoicesHeader from "./InvoicesHeader";
 
-const ClientsTable: React.FC<{
+const InvoicesTable: React.FC<{
   title: string;
   disableSortBy: boolean;
   showPagination: boolean;
   isShowAllVisible: boolean;
   isAddNewVisible: boolean;
+  selectedClient?: Client;
 }> = (props) => {
-  const columns = ClientHeader(props.disableSortBy);
+  const columns = InvoicesHeader(props.disableSortBy);
 
-  const [data, setData] = useState<Client[]>([]);
+  const [data, setData] = useState<Invoice[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [totalPages, setTotalPages] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
@@ -25,49 +27,55 @@ const ClientsTable: React.FC<{
   const [order, setOrder] = useState("");
   const authCtx = useContext(AuthContext);
   const { token } = authCtx;
+  const selectedClientId = props.selectedClient? props.selectedClient.id : "";
   const history = useHistory();
 
   const {
-    sendRequest: sendClientRequest,
-    status: clientStatus,
-    data: clientData,
-    error: clientError,
-  } = useHttp(getClients);
+    sendRequest: sendInvoiceRequest,
+    status: invoiceStatus,
+    data: invoiceData,
+    error: invoiceError,
+  } = useHttp(getInvoices);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [props.selectedClient])
 
   useEffect(() => {
     setIsLoading(true);
-    sendClientRequest({
+    sendInvoiceRequest({
       token: token,
       params: {
+        filter: selectedClientId,
         orderBy: orderBy,
         order: order,
         limit: itemsPerPage,
         offset: (currentPage - 1) * itemsPerPage,
       },
     });
-  }, [sendClientRequest, token, currentPage, order, orderBy]);
+  }, [sendInvoiceRequest, token, currentPage, order, orderBy, selectedClientId]);
 
   useEffect(() => {
-    if (clientStatus === "completed" && !clientError) {
+    if (invoiceStatus === "completed" && !invoiceError) {
       setIsLoading(false);
-      setData(clientData.clients);
-      setTotalPages(Math.ceil(clientData.total / itemsPerPage));
-    } else if (clientError) {
+      setData(invoiceData.invoices);
+      setTotalPages(Math.ceil(invoiceData.total / itemsPerPage));
+    } else if (invoiceError) {
       setIsLoading(false);
     }
-  }, [clientStatus, clientData, clientError]);
+  }, [invoiceStatus, invoiceData, invoiceError]);
 
   const showAllHandler = useCallback(() => {
-    history.push("/clients");
+    history.push("/invoices");
   }, [history]);
 
   const addNewHandler = useCallback(() => {
-    history.push("/clients/add");
+    history.push("/invoices/add");
   }, [history]);
 
   const rowClickHandler = useCallback(
-    (row: Client) => {
-      history.push(`/clients/${row.id}`);
+    (row: TotalInvoice) => {
+      history.push(`/invoices/${row.invoice.id}`);
     },
     [history]
   );
@@ -87,7 +95,7 @@ const ClientsTable: React.FC<{
       columns={columns}
       data={data}
       isLoading={isLoading}
-      error={clientError}
+      error={invoiceError}
       isShowAllVisible={props.isShowAllVisible}
       onShowAll={showAllHandler}
       isAddNewVisible={props.isAddNewVisible}
@@ -102,4 +110,4 @@ const ClientsTable: React.FC<{
   );
 };
 
-export default ClientsTable;
+export default InvoicesTable;
