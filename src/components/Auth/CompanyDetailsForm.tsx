@@ -138,25 +138,49 @@ const CompanyDetailsForm = () => {
             <FormLabel fontWeight="bold" htmlFor="name">
               Name
             </FormLabel>
-            <Input type="text" id="name" placeholder="Enter name" required ref={nameInputRef} />
+            <Input
+              type="text"
+              id="name"
+              placeholder="Enter name"
+              required
+              ref={nameInputRef}
+            />
           </div>
           <div className={classes.control}>
             <FormLabel fontWeight="bold" htmlFor="address">
               Address
             </FormLabel>
-            <Input type="text" id="address" placeholder="Enter address" required ref={addressInputRef} />
+            <Input
+              type="text"
+              id="address"
+              placeholder="Enter address"
+              required
+              ref={addressInputRef}
+            />
           </div>
           <div className={classes.control}>
             <FormLabel fontWeight="bold" htmlFor="vatNumber">
               Tax/VAT number
             </FormLabel>
-            <Input type="text" id="vatNumber" placeholder="Enter tax/vat number" required ref={vatInputRef} />
+            <Input
+              type="text"
+              id="vatNumber"
+              placeholder="Enter tax/vat number"
+              required
+              ref={vatInputRef}
+            />
           </div>
           <div className={classes.control}>
             <FormLabel fontWeight="bold" htmlFor="regNumber">
               Registration number
             </FormLabel>
-            <Input type="text" id="regNumber" placeholder="Enter registration number" required ref={regInputRef} />
+            <Input
+              type="text"
+              id="regNumber"
+              placeholder="Enter registration number"
+              required
+              ref={regInputRef}
+            />
           </div>
 
           <div className={classes.actions}>

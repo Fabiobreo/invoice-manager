@@ -21,7 +21,8 @@ body {
 }
 
 @media print {
-  html, body {
+  html,
+  body {
     height: initial !important;
     overflow: initial !important;
     -webkit-print-color-adjust: exact;

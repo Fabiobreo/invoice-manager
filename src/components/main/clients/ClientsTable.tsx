@@ -83,6 +83,7 @@ const ClientsTable: React.FC<{
 
   return (
     <UITable
+      id={"ClientsTable"}
       title={props.title}
       columns={columns}
       data={data}

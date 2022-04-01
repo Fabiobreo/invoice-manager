@@ -163,8 +163,6 @@ const SingleDatepickerCalendar = (
                   const {
                     date,
                     today,
-                    // prevMonth,
-                    // nextMonth,
                     selected,
                   } = dateObj;
                   const key = `${calendar.month}${calendar.year}${weekIndex}${index}`;
@@ -173,7 +171,6 @@ const SingleDatepickerCalendar = (
                     <Button
                       {...getDateProps({
                         dateObj,
-                        // disabled: isDisabled
                       })}
                       key={key}
                       size="sm"

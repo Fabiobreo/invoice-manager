@@ -1,5 +1,20 @@
-import { Button, FormLabel, Heading, Input, InputGroup, InputRightElement, useToast } from "@chakra-ui/react";
-import { Fragment, useCallback, useContext, useEffect, useRef, useState } from "react";
+import {
+  Button,
+  FormLabel,
+  Heading,
+  Input,
+  InputGroup,
+  InputRightElement,
+  useToast,
+} from "@chakra-ui/react";
+import {
+  Fragment,
+  useCallback,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import { useHistory } from "react-router-dom";
 import useHttp from "../../hooks/use-http";
 import { login, register } from "../../lib/api";
@@ -36,7 +51,7 @@ const Register: React.FC<{ switchAuthMode: () => void }> = (props) => {
 
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<ErrorType>();
-  
+
   const errorHandler = useCallback(() => {
     setError(undefined);
   }, []);
@@ -80,7 +95,7 @@ const Register: React.FC<{ switchAuthMode: () => void }> = (props) => {
       setIsLoading(false);
       const expirationTime = new Date(
         new Date().getTime() + 2 * 60 * 60 * 1000
-      ); // TODO CHANGE HERE, EXPIRES LOGIN IN TWO HOURS
+      );
       authCtx.login(loginData, expirationTime.toISOString());
       history.replace("/");
     } else if (loginError) {
@@ -92,7 +107,6 @@ const Register: React.FC<{ switchAuthMode: () => void }> = (props) => {
       });
     }
   }, [loginStatus, loginData, loginError, authCtx, history, errorHandler]);
-
 
   const submitHandler = (event: React.FormEvent) => {
     event.preventDefault();
@@ -163,15 +177,25 @@ const Register: React.FC<{ switchAuthMode: () => void }> = (props) => {
             <FormLabel fontWeight="bold" htmlFor="name">
               Name
             </FormLabel>
-            <Input type="text" id="name" 
-                placeholder="Enter name" required ref={nameInputRef} />
+            <Input
+              type="text"
+              id="name"
+              placeholder="Enter name"
+              required
+              ref={nameInputRef}
+            />
           </div>
           <div className={classes.control}>
             <FormLabel fontWeight="bold" htmlFor="email">
               Email
             </FormLabel>
-            <Input type="email" id="email"
-                placeholder="Enter email" required ref={emailInputRef} />
+            <Input
+              type="email"
+              id="email"
+              placeholder="Enter email"
+              required
+              ref={emailInputRef}
+            />
           </div>
           <div className={classes.control}>
             <FormLabel fontWeight="bold" htmlFor="password">
@@ -182,6 +206,7 @@ const Register: React.FC<{ switchAuthMode: () => void }> = (props) => {
                 id="password"
                 type={showPassword ? "text" : "password"}
                 placeholder="Enter password"
+                required
                 ref={passwordInputRef}
               />
               <InputRightElement width="4.5rem">
@@ -206,6 +231,7 @@ const Register: React.FC<{ switchAuthMode: () => void }> = (props) => {
                 id="confirmPassword"
                 type={showConfirmPassword ? "text" : "password"}
                 placeholder="Enter confirm password"
+                required
                 ref={confirmPasswordInputRef}
               />
               <InputRightElement width="4.5rem">
@@ -222,7 +248,11 @@ const Register: React.FC<{ switchAuthMode: () => void }> = (props) => {
             </InputGroup>
           </div>
           <div className={classes.actions}>
-            {!isLoading && <Button type="submit">Create Account</Button>}
+            {!isLoading && (
+              <Button type="submit" id="registerButton">
+                Create Account
+              </Button>
+            )}
             {isLoading && (
               <Button isLoading loadingText="Submitting">
                 Create Account

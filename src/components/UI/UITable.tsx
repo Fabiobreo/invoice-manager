@@ -23,24 +23,9 @@ import {
 } from "@chakra-ui/icons";
 import { ChevronUpIcon, ChevronDownIcon } from "@chakra-ui/icons";
 import LoadingSpinner from "./LoadingSpinner";
+import { UITableType } from "../../models/UITableType";
 
-const UITable: React.FC<{
-  columns: Array<any>;
-  data: Array<any>;
-  isLoading: boolean;
-  error: string | null;
-  title: string;
-  isShowAllVisible: boolean;
-  onShowAll?: () => void;
-  isAddNewVisible: boolean;
-  onAddNew?: () => void;
-  onRowClick: (row: any) => void;
-  totalPages: number;
-  currentPage: number;
-  onChangePage?: (newPage: number) => void;
-  showPagination: boolean;
-  onSort?: (sort: { sortBy: string; sort: string }) => void;
-}> = (props) => {
+const UITable: React.FC<UITableType> = (props) => {
   const cellProps = (props: any, { cell }: any) =>
     getStyles(props, cell.column.align);
 
@@ -125,6 +110,7 @@ const UITable: React.FC<{
   return (
     <Fragment>
       <Table
+        id={props.id}
         {...getTableProps()}
         variant="simple"
         colorScheme="linkedin"

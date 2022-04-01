@@ -92,7 +92,7 @@ const InvoicesHeader = (disableSort: boolean) => {
                       client: row.client,
                       loadAllClients: false,
                       isEditMode: false,
-                      openAndPrint: true
+                      openAndPrint: true,
                     } as InvoiceFormType,
                   });
                 }}

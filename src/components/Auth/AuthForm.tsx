@@ -1,7 +1,4 @@
-import {
-  useState,
-  Fragment,
-} from "react";
+import { useState, Fragment } from "react";
 
 import Login from "./Login";
 import Register from "./Register";
@@ -15,8 +12,8 @@ const AuthForm = () => {
 
   return (
     <Fragment>
-      {isLogin && <Login switchAuthMode={switchAuthModeHandler}/>}
-      {!isLogin && <Register switchAuthMode={switchAuthModeHandler}/>}
+      {isLogin && <Login switchAuthMode={switchAuthModeHandler} />}
+      {!isLogin && <Register switchAuthMode={switchAuthModeHandler} />}
     </Fragment>
   );
 };

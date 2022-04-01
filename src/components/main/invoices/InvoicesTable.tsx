@@ -27,7 +27,7 @@ const InvoicesTable: React.FC<{
   const [order, setOrder] = useState("");
   const authCtx = useContext(AuthContext);
   const { token } = authCtx;
-  const selectedClientId = props.selectedClient? props.selectedClient.id : "";
+  const selectedClientId = props.selectedClient ? props.selectedClient.id : "";
   const history = useHistory();
 
   const {
@@ -39,7 +39,7 @@ const InvoicesTable: React.FC<{
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [props.selectedClient])
+  }, [props.selectedClient]);
 
   useEffect(() => {
     setIsLoading(true);
@@ -53,7 +53,14 @@ const InvoicesTable: React.FC<{
         offset: (currentPage - 1) * itemsPerPage,
       },
     });
-  }, [sendInvoiceRequest, token, currentPage, order, orderBy, selectedClientId]);
+  }, [
+    sendInvoiceRequest,
+    token,
+    currentPage,
+    order,
+    orderBy,
+    selectedClientId,
+  ]);
 
   useEffect(() => {
     if (invoiceStatus === "completed" && !invoiceError) {
@@ -91,6 +98,7 @@ const InvoicesTable: React.FC<{
 
   return (
     <UITable
+      id={"InvoicesTable"}
       title={props.title}
       columns={columns}
       data={data}

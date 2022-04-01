@@ -18,7 +18,7 @@ const Backdrop: React.FC<{ onConfirm: () => void }> = (props) => {
 const ModalOverlay: React.FC<ErrorType> = (props) => {
   return (
     <Card className={classes.modal}>
-      <header className={classes.header}>
+      <header className={classes.header} id="modalErrorTitle">
         <h2>{props.title}</h2>
       </header>
       <div className={classes.content}>

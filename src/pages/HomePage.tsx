@@ -6,7 +6,7 @@ import LoadingSpinner from "../components/ui/LoadingSpinner";
 import useHttp from "../hooks/use-http";
 import { getCompanyDetails } from "../lib/api";
 import { AuthContext } from "../store/auth-context";
-import Home from "../assets/Home.png"
+import Home from "../assets/Home.png";
 
 const HomePage = () => {
   const authCtx = useContext(AuthContext);
@@ -71,7 +71,11 @@ const HomePage = () => {
           onConfirm={errorHandler}
         />
       )}
-      {!isLoggedIn && <div className="centered"><img src={Home} alt='Home'/></div>}
+      {!isLoggedIn && (
+        <div className="centered">
+          <img src={Home} alt="Home" />
+        </div>
+      )}
       {isLoggedIn && isLoading && (
         <div className="centered">
           <LoadingSpinner />

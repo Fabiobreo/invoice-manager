@@ -450,6 +450,7 @@ const ClientForm: React.FC<ClientFormType> = (props) => {
               <Box flex="1" mr={2}>
                 <Select
                   name="clientsList"
+                  id="selectClient"
                   classNamePrefix="chakra-react-select"
                   options={clients}
                   placeholder="Select a client..."
@@ -601,7 +602,9 @@ const ClientForm: React.FC<ClientFormType> = (props) => {
             {!loadAllClients && (
               <div className={classes.actions}>
                 {!isLoading && props.client === undefined && (
-                  <Button type="submit">Submit</Button>
+                  <Button type="submit" id="createClientButton">
+                    Submit
+                  </Button>
                 )}
                 {!isLoading && props.client !== undefined && !isReadOnly && (
                   <Button type="submit">Update</Button>

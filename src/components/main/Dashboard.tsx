@@ -23,7 +23,8 @@ const Dashboard = () => {
           disableSortBy={true}
           showPagination={false}
           isShowAllVisible={true}
-          isAddNewVisible={true}/>
+          isAddNewVisible={true}
+        />
       </Card>
     </Fragment>
   );

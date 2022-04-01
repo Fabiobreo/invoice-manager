@@ -128,6 +128,7 @@ const Invoices = () => {
       {!isClientsLoading && (
         <Box m={2}>
           <Select
+            id="selectClient"
             name="clientsList"
             classNamePrefix="chakra-react-select"
             options={clients}

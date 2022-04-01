@@ -11,7 +11,7 @@ import Invoices from "./components/main/invoices/Invoices";
 import InvoiceForm from "./components/main/invoices/InvoiceForm";
 import InvoiceDetails from "./components/main/invoices/InvoiceDetails";
 
-function App() {
+const App = () => {
   const authCtx = useContext(AuthContext);
   const { isLoggedIn } = authCtx;
   const { current_user } = authCtx;
@@ -80,6 +80,6 @@ function App() {
       </Switch>
     </PageLayout>
   );
-}
+};
 
 export default App;

@@ -25,17 +25,17 @@ const Header = () => {
         <ul>
           {!isLoggedIn && (
             <li>
-              <Link to="/login">Login</Link>
+              <Link to="/login" id="headerLogin">
+                Login
+              </Link>
             </li>
           )}
+          {isLoggedIn && <li>{loggedUserName}</li>}
           {isLoggedIn && (
             <li>
-              {loggedUserName}
-            </li>
-          )}
-          {isLoggedIn && (
-            <li>
-              <button onClick={logoutHandler}>Logout</button>
+              <button onClick={logoutHandler} id="headerLogout">
+                Logout
+              </button>
             </li>
           )}
         </ul>

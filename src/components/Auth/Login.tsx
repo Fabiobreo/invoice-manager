@@ -121,6 +121,7 @@ const Login: React.FC<{ switchAuthMode: () => void }> = (props) => {
               <Input
                 id="password"
                 type={showPassword ? "text" : "password"}
+                required
                 placeholder="Enter password"
                 ref={passwordInputRef}
               />
@@ -139,7 +140,11 @@ const Login: React.FC<{ switchAuthMode: () => void }> = (props) => {
           </div>
 
           <div className={classes.actions}>
-            {!isLoading && <Button type="submit">Login</Button>}
+            {!isLoading && (
+              <Button type="submit" id="loginButton">
+                Login
+              </Button>
+            )}
             {isLoading && (
               <Button isLoading loadingText="Submitting">
                 Login
@@ -149,6 +154,7 @@ const Login: React.FC<{ switchAuthMode: () => void }> = (props) => {
               type="button"
               className={classes.toggle}
               onClick={props.switchAuthMode}
+              id="switchButton"
             >
               Create new account
             </button>

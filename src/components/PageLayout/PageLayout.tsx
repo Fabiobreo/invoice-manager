@@ -1,6 +1,6 @@
-import { Fragment } from 'react';
+import { Fragment } from "react";
 
-import Header from './Header';
+import Header from "./Header";
 
 const PageLayout: React.FC = (props) => {
   return (

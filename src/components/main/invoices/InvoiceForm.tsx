@@ -555,6 +555,7 @@ const InvoiceForm: React.FC<InvoiceFormType> = (props) => {
                         <Input
                           type="text"
                           name="item"
+                          id={`item${index}`}
                           required
                           isReadOnly={isReadOnly}
                           placeholder="Insert a new item"
@@ -565,6 +566,7 @@ const InvoiceForm: React.FC<InvoiceFormType> = (props) => {
                       <div className={classes.column}>
                         <Input
                           name="price"
+                          id={`price${index}`}
                           type="text"
                           required
                           isReadOnly={isReadOnly}
@@ -616,7 +618,9 @@ const InvoiceForm: React.FC<InvoiceFormType> = (props) => {
 
             <div className={classes.actions}>
               {!isLoading && props.invoice === undefined && (
-                <Button type="submit">Submit</Button>
+                <Button type="submit" id="createInvoiceButton">
+                  Submit
+                </Button>
               )}
               {!isLoading && props.invoice !== undefined && !isReadOnly && (
                 <Button type="submit">Update</Button>
