@@ -1,4 +1,4 @@
-import Card from "../../ui/Card";
+import Card from "../../UI/Card";
 import ClientsTable from "./ClientsTable";
 
 import classes from "./Clients.module.css";

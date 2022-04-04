@@ -2,7 +2,7 @@ import { useContext } from "react";
 import { AuthContext } from "./store/auth-context";
 import { Switch, Route, Redirect } from "react-router-dom";
 import AuthPage from "./pages/AuthPage";
-import PageLayout from "./components/pageLayout/PageLayout";
+import PageLayout from "./components/PageLayout/PageLayout";
 import HomePage from "./pages/HomePage";
 import ClientForm from "./components/main/clients/ClientForm";
 import ClientDetails from "./components/main/clients/ClientDetails";

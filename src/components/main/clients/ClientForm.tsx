@@ -28,9 +28,9 @@ import { ClientComboBox } from "../../../models/ClientComboBox";
 import { ClientFormType } from "../../../models/ClientFormType";
 import { InvoiceFormType } from "../../../models/InvoiceFormType";
 import { AuthContext } from "../../../store/auth-context";
-import Card from "../../ui/Card";
-import ErrorModal, { ErrorType } from "../../ui/ErrorModal";
-import LoadingSpinner from "../../ui/LoadingSpinner";
+import Card from "../../UI/Card";
+import ErrorModal, { ErrorType } from "../../UI/ErrorModal";
+import LoadingSpinner from "../../UI/LoadingSpinner";
 
 import classes from "./ClientForm.module.css";
 

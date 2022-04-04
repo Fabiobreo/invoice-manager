@@ -1,8 +1,8 @@
 import { Fragment, useContext, useEffect, useState } from "react";
-import CompanyDetailsForm from "../components/auth/CompanyDetailsForm";
+import CompanyDetailsForm from "../components/Auth/CompanyDetailsForm";
 import Dashboard from "../components/main/Dashboard";
-import ErrorModal, { ErrorType } from "../components/ui/ErrorModal";
-import LoadingSpinner from "../components/ui/LoadingSpinner";
+import ErrorModal, { ErrorType } from "../components/UI/ErrorModal";
+import LoadingSpinner from "../components/UI/LoadingSpinner";
 import useHttp from "../hooks/use-http";
 import { getCompanyDetails } from "../lib/api";
 import { AuthContext } from "../store/auth-context";

@@ -11,8 +11,8 @@ import { useHistory } from "react-router-dom";
 import useHttp from "../../hooks/use-http";
 import { login } from "../../lib/api";
 import { AuthContext } from "../../store/auth-context";
-import Card from "../ui/Card";
-import ErrorModal, { ErrorType } from "../ui/ErrorModal";
+import Card from "../UI/Card";
+import ErrorModal, { ErrorType } from "../UI/ErrorModal";
 
 import classes from "./Login.module.css";
 

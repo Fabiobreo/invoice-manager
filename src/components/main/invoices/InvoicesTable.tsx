@@ -5,7 +5,7 @@ import { getInvoices } from "../../../lib/api";
 import { Client } from "../../../models/Client";
 import { Invoice, TotalInvoice } from "../../../models/Invoice";
 import { AuthContext } from "../../../store/auth-context";
-import UITable from "../../ui/UITable";
+import UITable from "../../UI/UITable";
 import InvoicesHeader from "./InvoicesHeader";
 
 const InvoicesTable: React.FC<{

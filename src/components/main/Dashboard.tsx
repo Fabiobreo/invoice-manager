@@ -1,5 +1,5 @@
 import { Fragment } from "react";
-import Card from "../ui/Card";
+import Card from "../UI/Card";
 import ClientsTable from "./clients/ClientsTable";
 
 import classes from "./Dashboard.module.css";

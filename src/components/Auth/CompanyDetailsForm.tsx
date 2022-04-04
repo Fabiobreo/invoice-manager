@@ -10,8 +10,8 @@ import {
 import useHttp from "../../hooks/use-http";
 import { putCompanyDetails } from "../../lib/api";
 import { AuthContext } from "../../store/auth-context";
-import Card from "../ui/Card";
-import ErrorModal, { ErrorType } from "../ui/ErrorModal";
+import Card from "../UI/Card";
+import ErrorModal, { ErrorType } from "../UI/ErrorModal";
 
 import classes from "./CompanyDetailsForm.module.css";
 

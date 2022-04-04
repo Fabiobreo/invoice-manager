@@ -26,9 +26,9 @@ import { postInvoice, putInvoice } from "../../../lib/api";
 import { Client } from "../../../models/Client";
 import { InvoiceFormType } from "../../../models/InvoiceFormType";
 import { AuthContext } from "../../../store/auth-context";
-import Card from "../../ui/Card";
-import { SingleDatepicker } from "../../ui/DatePicker";
-import ErrorModal, { ErrorType } from "../../ui/ErrorModal";
+import Card from "../../UI/Card";
+import { SingleDatepicker } from "../../UI/DatePicker";
+import ErrorModal, { ErrorType } from "../../UI/ErrorModal";
 import ClientForm from "../clients/ClientForm";
 
 import classes from "./InvoiceForm.module.css";

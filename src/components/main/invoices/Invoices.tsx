@@ -1,4 +1,4 @@
-import Card from "../../ui/Card";
+import Card from "../../UI/Card";
 import InvoicesTable from "./InvoicesTable";
 
 import classes from "./Invoices.module.css";
@@ -10,8 +10,8 @@ import { Client } from "../../../models/Client";
 import useHttp from "../../../hooks/use-http";
 import { getClients } from "../../../lib/api";
 import { AuthContext } from "../../../store/auth-context";
-import LoadingSpinner from "../../ui/LoadingSpinner";
-import ErrorModal, { ErrorType } from "../../ui/ErrorModal";
+import LoadingSpinner from "../../UI/LoadingSpinner";
+import ErrorModal, { ErrorType } from "../../UI/ErrorModal";
 import { useHistory } from "react-router-dom";
 
 const Invoices = () => {

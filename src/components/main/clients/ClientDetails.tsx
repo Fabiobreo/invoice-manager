@@ -4,9 +4,9 @@ import useHttp from "../../../hooks/use-http";
 import { getClient } from "../../../lib/api";
 import { Client } from "../../../models/Client";
 import { AuthContext } from "../../../store/auth-context";
-import Card from "../../ui/Card";
-import ErrorModal, { ErrorType } from "../../ui/ErrorModal";
-import LoadingSpinner from "../../ui/LoadingSpinner";
+import Card from "../../UI/Card";
+import ErrorModal, { ErrorType } from "../../UI/ErrorModal";
+import LoadingSpinner from "../../UI/LoadingSpinner";
 import InvoicesTable from "../invoices/InvoicesTable";
 import ClientForm from "./ClientForm";
 

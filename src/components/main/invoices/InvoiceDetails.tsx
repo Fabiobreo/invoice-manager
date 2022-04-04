@@ -13,8 +13,8 @@ import { getClient, getInvoice } from "../../../lib/api";
 import { Client } from "../../../models/Client";
 import { Invoice } from "../../../models/Invoice";
 import { AuthContext } from "../../../store/auth-context";
-import ErrorModal, { ErrorType } from "../../ui/ErrorModal";
-import LoadingSpinner from "../../ui/LoadingSpinner";
+import ErrorModal, { ErrorType } from "../../UI/ErrorModal";
+import LoadingSpinner from "../../UI/LoadingSpinner";
 import InvoiceForm from "./InvoiceForm";
 
 const InvoiceDetails = () => {

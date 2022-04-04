@@ -4,7 +4,7 @@ import useHttp from "../../../hooks/use-http";
 import { getClients } from "../../../lib/api";
 import { Client } from "../../../models/Client";
 import { AuthContext } from "../../../store/auth-context";
-import UITable from "../../ui/UITable";
+import UITable from "../../UI/UITable";
 import ClientHeader from "./ClientHeader";
 
 const ClientsTable: React.FC<{
