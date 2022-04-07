@@ -4,25 +4,31 @@ import useHttp from "../../../hooks/use-http";
 import { getClients } from "../../../lib/api";
 import { Client } from "../../../models/Client";
 import { AuthContext } from "../../../store/auth-context";
-import UITable from "../../UI/UITable";
+import UITable, { FilterType } from "../../UI/UITable";
 import ClientHeader from "./ClientHeader";
 
-const ClientsTable: React.FC<{
+type ClientsTableType = {
   title: string;
   disableSortBy: boolean;
   showPagination: boolean;
   isShowAllVisible: boolean;
   isAddNewVisible: boolean;
-}> = (props) => {
+  currentPage?: number;
+  sort?: string;
+  sortBy?: string;
+  linkHandler?: (page: number, sortBy: string, sort: string) => void;
+};
+
+const ClientsTable: React.FC<ClientsTableType> = (props) => {
   const columns = ClientHeader(props.disableSortBy);
 
   const [data, setData] = useState<Client[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [totalPages, setTotalPages] = useState(0);
-  const [currentPage, setCurrentPage] = useState(1);
+  const [currentPage, setCurrentPage] = useState(
+    props.currentPage ? props.currentPage : 1
+  );
   const itemsPerPage = 10;
-  const [orderBy, setOrderBy] = useState("");
-  const [order, setOrder] = useState("");
   const authCtx = useContext(AuthContext);
   const { token } = authCtx;
   const history = useHistory();
@@ -39,13 +45,13 @@ const ClientsTable: React.FC<{
     sendClientRequest({
       token: token,
       params: {
-        orderBy: orderBy,
-        order: order,
+        orderBy: props.sortBy ? props.sortBy : "",
+        order: props.sort ? props.sort : "",
         limit: itemsPerPage,
         offset: (currentPage - 1) * itemsPerPage,
       },
     });
-  }, [sendClientRequest, token, currentPage, order, orderBy]);
+  }, [sendClientRequest, token, currentPage, props.sort, props.sortBy]);
 
   useEffect(() => {
     if (clientStatus === "completed" && !clientError) {
@@ -72,13 +78,17 @@ const ClientsTable: React.FC<{
     [history]
   );
 
-  const changePageHandler = useCallback((newPage: number) => {
-    setCurrentPage(newPage);
+  const changePageHandler = useCallback((args: FilterType) => {
+    setCurrentPage(args.page);
+    if (props.linkHandler) {
+      props.linkHandler(args.page, args.sortBy, args.sort);
+    }
   }, []);
 
-  const sortHandler = useCallback((sort: { sortBy: string; sort: string }) => {
-    setOrderBy(sort.sortBy);
-    setOrder(sort.sort);
+  const sortHandler = useCallback((args: FilterType) => {
+    if (props.linkHandler) {
+      props.linkHandler(args.page, args.sortBy, args.sort);
+    }
   }, []);
 
   return (
@@ -99,6 +109,8 @@ const ClientsTable: React.FC<{
       showPagination={props.showPagination}
       onChangePage={changePageHandler}
       onSort={sortHandler}
+      sort={props.sort ? props.sort : ""}
+      sortBy={props.sortBy ? props.sortBy : ""}
     />
   );
 };

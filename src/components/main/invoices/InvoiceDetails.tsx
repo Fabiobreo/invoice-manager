@@ -20,8 +20,8 @@ import InvoiceForm from "./InvoiceForm";
 const InvoiceDetails = () => {
   const authCtx = useContext(AuthContext);
   const history = useHistory();
-  const params = useParams();
-  const { invoiceId }: any = params;
+  const params = useParams<{ invoiceId?: string }>();
+  const { invoiceId } = params;
   const componentRef = useRef(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<ErrorType>();
@@ -71,11 +71,13 @@ const InvoiceDetails = () => {
   ]);
 
   useEffect(() => {
-    setIsLoading(true);
-    sendGetInvoiceRequest({
-      token: authCtx.current_user!.token,
-      id: invoiceId,
-    });
+    if (invoiceId !== undefined) {
+      setIsLoading(true);
+      sendGetInvoiceRequest({
+        token: authCtx.current_user!.token,
+        id: invoiceId,
+      });
+    }
   }, [authCtx.current_user, invoiceId, sendGetInvoiceRequest]);
 
   useEffect(() => {
@@ -128,6 +130,8 @@ const InvoiceDetails = () => {
             invoice={invoice}
             client={client}
             print={handlePrint}
+            showActions={true}
+            showGoBack={true}
             isEditMode={false}
             openAndPrint={false}
           />

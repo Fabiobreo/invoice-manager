@@ -63,7 +63,9 @@ const App = () => {
           <Route path="/invoices/add" exact>
             <InvoiceForm
               loadAllClients={true}
+              showActions={false}
               isEditMode={false}
+              showGoBack={true}
               openAndPrint={false}
             />
           </Route>

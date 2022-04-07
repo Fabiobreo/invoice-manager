@@ -23,7 +23,33 @@ import {
 } from "@chakra-ui/icons";
 import { ChevronUpIcon, ChevronDownIcon } from "@chakra-ui/icons";
 import LoadingSpinner from "./LoadingSpinner";
-import { UITableType } from "../../models/UITableType";
+
+type UITableType = {
+  id: string;
+  columns: Array<any>;
+  data: Array<any>;
+  isLoading: boolean;
+  error: string | null;
+  title: string;
+  isShowAllVisible: boolean;
+  onShowAll?: () => void;
+  isAddNewVisible: boolean;
+  onAddNew?: () => void;
+  onRowClick: (row: any) => void;
+  totalPages: number;
+  currentPage: number;
+  onChangePage?: (args: FilterType) => void;
+  showPagination: boolean;
+  onSort?: (args: FilterType) => void;
+  sort: string;
+  sortBy: string;
+};
+
+export type FilterType = {
+  page: number;
+  sortBy: string;
+  sort: string;
+};
 
 const UITable: React.FC<UITableType> = (props) => {
   const cellProps = (props: any, { cell }: any) =>
@@ -76,6 +102,15 @@ const UITable: React.FC<UITableType> = (props) => {
       manualPagination: true,
       manualSortBy: true,
       pageCount: props.totalPages,
+      initialState: {
+        pageIndex: props.currentPage - 1,
+        sortBy: [
+          {
+            id: props.sortBy,
+            desc: props.sort == "desc",
+          },
+        ],
+      },
     },
     useSortBy,
     usePagination,
@@ -89,16 +124,14 @@ const UITable: React.FC<UITableType> = (props) => {
     if (sortBy.length > 0) {
       if (onSort) {
         onSort({
+          page: currentPage,
           sortBy: sortBy[0].id,
           sort: sortBy[0].desc ? "desc" : "asc",
         });
       }
     } else {
       if (onSort) {
-        onSort({
-          sortBy: "",
-          sort: "",
-        });
+        onSort({ page: currentPage, sortBy: "", sort: "" });
       }
     }
   }, [sortBy, onSort]);
@@ -266,9 +299,19 @@ const UITable: React.FC<UITableType> = (props) => {
                 onClick={() => {
                   gotoPage(0);
                   setCurrentPage(1);
-                  if (props.onChangePage) props.onChangePage(1);
+                  if (props.onChangePage)
+                    props.onChangePage({
+                      page: 1,
+                      sortBy: sortBy.length > 0 ? sortBy[0].id : "",
+                      sort:
+                        sortBy.length > 0
+                          ? sortBy[0].desc
+                            ? "desc"
+                            : "asc"
+                          : "",
+                    });
                 }}
-                isDisabled={!canPreviousPage}
+                isDisabled={!canPreviousPage || currentPage === 1}
                 icon={<ArrowLeftIcon h={3} w={3} />}
                 mr={4}
               />
@@ -279,9 +322,19 @@ const UITable: React.FC<UITableType> = (props) => {
                 onClick={() => {
                   previousPage();
                   setCurrentPage(currentPage - 1);
-                  if (props.onChangePage) props.onChangePage(currentPage - 1);
+                  if (props.onChangePage)
+                    props.onChangePage({
+                      page: currentPage - 1,
+                      sortBy: sortBy.length > 0 ? sortBy[0].id : "",
+                      sort:
+                        sortBy.length > 0
+                          ? sortBy[0].desc
+                            ? "desc"
+                            : "asc"
+                          : "",
+                    });
                 }}
-                isDisabled={!canPreviousPage}
+                isDisabled={!canPreviousPage || currentPage === 1}
                 icon={<ChevronLeftIcon h={6} w={6} />}
               />
             </Tooltip>
@@ -307,9 +360,19 @@ const UITable: React.FC<UITableType> = (props) => {
                 onClick={() => {
                   nextPage();
                   setCurrentPage(currentPage + 1);
-                  if (props.onChangePage) props.onChangePage(currentPage + 1);
+                  if (props.onChangePage)
+                    props.onChangePage({
+                      page: currentPage + 1,
+                      sortBy: sortBy.length > 0 ? sortBy[0].id : "",
+                      sort:
+                        sortBy.length > 0
+                          ? sortBy[0].desc
+                            ? "desc"
+                            : "asc"
+                          : "",
+                    });
                 }}
-                isDisabled={!canNextPage}
+                isDisabled={!canNextPage || currentPage === pageOptions.length}
                 icon={<ChevronRightIcon h={6} w={6} />}
               />
             </Tooltip>
@@ -319,9 +382,19 @@ const UITable: React.FC<UITableType> = (props) => {
                 onClick={() => {
                   gotoPage(pageCount - 1);
                   setCurrentPage(pageCount);
-                  if (props.onChangePage) props.onChangePage(pageCount);
+                  if (props.onChangePage)
+                    props.onChangePage({
+                      page: pageCount,
+                      sortBy: sortBy.length > 0 ? sortBy[0].id : "",
+                      sort:
+                        sortBy.length > 0
+                          ? sortBy[0].desc
+                            ? "desc"
+                            : "asc"
+                          : "",
+                    });
                 }}
-                isDisabled={!canNextPage}
+                isDisabled={!canNextPage || currentPage === pageOptions.length}
                 icon={<ArrowRightIcon h={3} w={3} />}
                 ml={4}
               />

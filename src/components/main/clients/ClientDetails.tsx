@@ -15,8 +15,8 @@ import classes from "./ClientDetails.module.css";
 const ClientDetails = () => {
   const authCtx = useContext(AuthContext);
   const history = useHistory();
-  const params = useParams();
-  const { clientId }: any = params;
+  const params = useParams<{ clientId?: string }>();
+  const { clientId } = params;
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<ErrorType>();
   const [client, setClient] = useState<Client>();
@@ -54,11 +54,13 @@ const ClientDetails = () => {
   ]);
 
   useEffect(() => {
-    setIsLoading(true);
-    sendGetClientRequest({
-      token: authCtx.current_user!.token,
-      id: clientId,
-    });
+    if (clientId !== undefined) {
+      setIsLoading(true);
+      sendGetClientRequest({
+        token: authCtx.current_user!.token,
+        id: clientId,
+      });
+    }
   }, [authCtx.current_user, clientId, sendGetClientRequest]);
 
   return (

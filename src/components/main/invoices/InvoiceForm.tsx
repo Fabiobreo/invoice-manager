@@ -9,6 +9,11 @@ import {
   Heading,
   IconButton,
   Input,
+  NumberDecrementStepper,
+  NumberIncrementStepper,
+  NumberInput,
+  NumberInputField,
+  NumberInputStepper,
   Spacer,
   useToast,
 } from "@chakra-ui/react";
@@ -33,12 +38,19 @@ import ClientForm from "../clients/ClientForm";
 
 import classes from "./InvoiceForm.module.css";
 
-const format = (val: string) => `$` + val;
-const parse = (val: string) => {
-  const value = val.replace(/^\$/, "");
-  if (value.length > 0) return value;
-  else return "0";
+type InvoiceItem = {
+  item: string;
+  price: number;
 };
+
+const today = new Date();
+const nextMonth = new Date(today);
+nextMonth.setDate(nextMonth.getDate() + 30);
+
+const formatter = new Intl.NumberFormat("en-US", {
+  style: "currency",
+  currency: "USD",
+});
 
 const InvoiceForm: React.FC<InvoiceFormType> = (props) => {
   const authCtx = useContext(AuthContext);
@@ -49,6 +61,7 @@ const InvoiceForm: React.FC<InvoiceFormType> = (props) => {
   let selectedClient = props.client;
   let editMode = props.isEditMode;
   let openAndPrint = props.openAndPrint;
+  let showActions = props.showActions;
   let print = props.print;
 
   const state = history.location.state as InvoiceFormType;
@@ -63,6 +76,9 @@ const InvoiceForm: React.FC<InvoiceFormType> = (props) => {
     if (state.openAndPrint) {
       openAndPrint = state.openAndPrint;
     }
+    if (state.showActions) {
+      showActions = state.showActions;
+    }
 
     if (state.print) {
       print = state.print;
@@ -70,7 +86,11 @@ const InvoiceForm: React.FC<InvoiceFormType> = (props) => {
   }
 
   const [invoiceDate, setInvoiceDate] = useState<Date>(
-    props.invoice ? new Date(props.invoice.date) : new Date()
+    props.invoice ? new Date(props.invoice.date) : today
+  );
+
+  const [invoiceDueDate, setInvoiceDueDate] = useState<Date>(
+    props.invoice ? new Date(props.invoice.dueDate) : nextMonth
   );
 
   const [invoiceNumber, setInvoiceNumber] = useState<string>(
@@ -81,15 +101,15 @@ const InvoiceForm: React.FC<InvoiceFormType> = (props) => {
     props.invoice ? props.invoice.projectCode : ""
   );
 
-  const [invoiceTotal, setInvoiceTotal] = useState<string>(
-    props.invoice ? format(props.invoice.value.toFixed(2).toString()) : ""
+  const [invoiceTotal, setInvoiceTotal] = useState<number>(
+    props.invoice ? props.invoice.value : 0.0
   );
 
   const [currentClient, setCurrentClient] = useState<Client | null>(
     selectedClient ? selectedClient : null
   );
 
-  const defaultInvoiceItems = [{ item: "", price: "0.00" }];
+  const defaultInvoiceItems = [{ item: "", price: 0.0 }];
   let propsInvoiceItems = [];
 
   if (props.invoice && props.invoice.meta) {
@@ -145,7 +165,7 @@ const InvoiceForm: React.FC<InvoiceFormType> = (props) => {
         setProjectCode(props.invoice!.projectCode);
         setInvoiceDate(new Date(props.invoice!.date));
         setInvoiceNumber(props.invoice!.invoice_number);
-        setInvoiceTotal(format(props.invoice!.value.toFixed(2).toString()));
+        setInvoiceTotal(props.invoice!.value);
         propsInvoiceItems = [];
         if (props.invoice && props.invoice.meta) {
           for (let key in props.invoice.meta) {
@@ -250,6 +270,15 @@ const InvoiceForm: React.FC<InvoiceFormType> = (props) => {
       return;
     }
 
+    if (invoiceDueDate < invoiceDate) {
+      setError({
+        title: "Invoice registration failed",
+        message: "Enter a valid due date.",
+        onConfirm: errorHandler,
+      });
+      return;
+    }
+
     if (invoiceNumber.trim().length === 0) {
       setError({
         title: "Invoice registration failed",
@@ -268,7 +297,7 @@ const InvoiceForm: React.FC<InvoiceFormType> = (props) => {
       return;
     }
 
-    if (parseFloat(parse(invoiceTotal)) === 0) {
+    if (invoiceTotal === 0) {
       setError({
         title: "Invoice registration failed",
         message: "Total is $0. Enter at least an item greater than zero.",
@@ -290,7 +319,7 @@ const InvoiceForm: React.FC<InvoiceFormType> = (props) => {
 
     setIsLoading(true);
 
-    const meta = {} as Record<string, string>;
+    const meta = {} as Record<string, number>;
     for (const element of invoiceItems) {
       meta[element.item] = element.price;
     }
@@ -302,7 +331,8 @@ const InvoiceForm: React.FC<InvoiceFormType> = (props) => {
           invoice_number: invoiceNumber,
           client_id: currentClient.id,
           date: invoiceDate.getTime(),
-          value: parseFloat(parse(invoiceTotal)),
+          dueDate: invoiceDueDate.getTime(),
+          value: invoiceTotal,
           projectCode: projectCode,
           meta: meta,
         },
@@ -315,17 +345,13 @@ const InvoiceForm: React.FC<InvoiceFormType> = (props) => {
           invoice_number: invoiceNumber,
           client_id: currentClient.id,
           date: invoiceDate.getTime(),
-          value: parseFloat(parse(invoiceTotal)),
+          dueDate: invoiceDueDate.getTime(),
+          value: invoiceTotal,
           projectCode: projectCode,
           meta: meta,
         },
       });
     }
-  };
-
-  type InvoiceItem = {
-    item: string;
-    price: string;
   };
 
   const handleItemChange = (
@@ -339,22 +365,21 @@ const InvoiceForm: React.FC<InvoiceFormType> = (props) => {
 
   const handlePriceChange = (
     index: number,
-    event: React.ChangeEvent<HTMLInputElement>
+    stringValue: string
   ) => {
     let values = [...invoiceItems];
-    const value = parse(event?.target.value);
-    values[index]["price"] = value;
+    values[index]["price"] = parseFloat(stringValue);
     setInvoiceItems(values);
 
     let total = 0;
     for (let i = 0; i < values.length; ++i) {
-      total += parseFloat(values[i].price);
+      total += values[i].price;
     }
-    setInvoiceTotal(format(total.toFixed(2).toString()));
+    setInvoiceTotal(total);
   };
 
   const addFormFields = () => {
-    setInvoiceItems([...invoiceItems, { item: "", price: "0.00" }]);
+    setInvoiceItems([...invoiceItems, { item: "", price: 0.0 }]);
   };
 
   const removeFormFields = (i: number) => {
@@ -364,9 +389,9 @@ const InvoiceForm: React.FC<InvoiceFormType> = (props) => {
 
     let total = 0;
     for (let i = 0; i < values.length; ++i) {
-      total += parseFloat(values[i].price);
+      total += values[i].price;
     }
-    setInvoiceTotal(format(total.toFixed(2).toString()));
+    setInvoiceTotal(total);
   };
 
   return (
@@ -381,26 +406,28 @@ const InvoiceForm: React.FC<InvoiceFormType> = (props) => {
       <Card className={classes.invoiceForm}>
         <div className={classes.control}>
           <Flex>
-            <Center>
-              <IconButton
-                aria-label="Go Back"
-                size="sm"
-                background="#64b5f6"
-                color="white"
-                ml={1}
-                mt={1}
-                onClick={() => history.goBack()}
-              >
-                <ChevronLeftIcon h={6} w={6} />
-              </IconButton>
-            </Center>
+            {props.showGoBack && (
+              <Center>
+                <IconButton
+                  aria-label="Go Back"
+                  size="sm"
+                  background="#64b5f6"
+                  color="white"
+                  ml={1}
+                  mt={1}
+                  onClick={() => history.goBack()}
+                >
+                  <ChevronLeftIcon h={6} w={6} />
+                </IconButton>
+              </Center>
+            )}
             <Spacer />
             <Heading size={"2xl"}>Invoice</Heading>
             <Spacer />
           </Flex>
         </div>
         <div>
-          {selectedClient !== undefined && (
+          {selectedClient !== undefined && showActions === true && (
             <div className={classes.control}>
               <Flex ml={1} mr={1}>
                 <Center>
@@ -413,6 +440,7 @@ const InvoiceForm: React.FC<InvoiceFormType> = (props) => {
                     color="white"
                     onClick={() => {
                       if (print) print();
+                      else window.print();
                     }}
                   >
                     Print
@@ -454,8 +482,8 @@ const InvoiceForm: React.FC<InvoiceFormType> = (props) => {
                   </FormLabel>
                 </div>
                 <div className={classes.column}>
-                  <FormLabel fontWeight="bold" htmlFor="invoiceNumber">
-                    Invoice number
+                  <FormLabel fontWeight="bold" htmlFor="invoiceDueDate">
+                    Due date
                   </FormLabel>
                 </div>
               </div>
@@ -473,6 +501,33 @@ const InvoiceForm: React.FC<InvoiceFormType> = (props) => {
                   </Box>
                 </div>
                 <div className={classes.column}>
+                  <SingleDatepicker
+                    name="invoiceDueDate"
+                    id="invoiceDueDate"
+                    date={invoiceDueDate}
+                    onDateChange={setInvoiceDueDate}
+                    isReadOnly={isReadOnly}
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div className={classes.control}>
+              <div className={classes.row}>
+                <div className={classes.column}>
+                  <FormLabel fontWeight="bold" htmlFor="invoiceNumber">
+                    Invoice number
+                  </FormLabel>
+                </div>
+                <div className={classes.column}>
+                  <FormLabel fontWeight="bold" htmlFor="projectIdentifier">
+                    Project identifier
+                  </FormLabel>
+                </div>
+              </div>
+
+              <div className={classes.row}>
+                <div className={classes.column}>
                   <Input
                     type="text"
                     id="invoiceNumber"
@@ -483,24 +538,6 @@ const InvoiceForm: React.FC<InvoiceFormType> = (props) => {
                     onChange={onInvoiceNumberChange}
                   />
                 </div>
-              </div>
-            </div>
-
-            <div className={classes.control}>
-              <div className={classes.row}>
-                <div className={classes.column}>
-                  <FormLabel fontWeight="bold" htmlFor="projectIdentifier">
-                    Project identifier
-                  </FormLabel>
-                </div>
-                <div className={classes.column}>
-                  <FormLabel fontWeight="bold" htmlFor="projectIdentifier">
-                    Invoice Total
-                  </FormLabel>
-                </div>
-              </div>
-
-              <div className={classes.row}>
                 <div className={classes.column}>
                   <Input
                     type="text"
@@ -510,16 +547,6 @@ const InvoiceForm: React.FC<InvoiceFormType> = (props) => {
                     readOnly={isReadOnly}
                     value={projectCode}
                     onChange={onProjectCodeChange}
-                  />
-                </div>
-                <div className={classes.column}>
-                  <Input
-                    type="text"
-                    id="invoiceTotal"
-                    placeholder="$0"
-                    required
-                    readOnly={true}
-                    value={invoiceTotal}
                   />
                 </div>
               </div>
@@ -546,8 +573,9 @@ const InvoiceForm: React.FC<InvoiceFormType> = (props) => {
                         <FormLabel fontWeight="bold">Item</FormLabel>
                       </div>
                       <div className={classes.column}>
-                        <FormLabel fontWeight="bold">Price</FormLabel>
+                        <FormLabel fontWeight="bold">Price ($)</FormLabel>
                       </div>
+                      {!isReadOnly &&<div className={classes.column} />}
                     </div>
 
                     <div className={classes.row}>
@@ -564,18 +592,20 @@ const InvoiceForm: React.FC<InvoiceFormType> = (props) => {
                         />
                       </div>
                       <div className={classes.column}>
-                        <Input
+                        <NumberInput
                           name="price"
                           id={`price${index}`}
-                          type="text"
-                          required
                           isReadOnly={isReadOnly}
-                          onChange={(valueString) =>
-                            handlePriceChange(index, valueString)
-                          }
-                          value={format(element.price)}
+                          value={element.price || 0.0}
+                          onChange={(stringValue) => handlePriceChange(index, stringValue)}
                           step={0.5}
-                        />
+                        >
+                          <NumberInputField required />
+                          <NumberInputStepper>
+                            <NumberIncrementStepper />
+                            <NumberDecrementStepper />
+                          </NumberInputStepper>
+                        </NumberInput>
                       </div>
                       {!isReadOnly && (
                         <div className={classes.column}>
@@ -615,6 +645,33 @@ const InvoiceForm: React.FC<InvoiceFormType> = (props) => {
                 )}
               </FormControl>
             </Card>
+
+            <div className={classes.control}>
+              <div className={classes.row}>
+                <div className={classes.column} />
+                <div className={classes.column}>
+                  <FormLabel fontWeight="bold" htmlFor="projectIdentifier">
+                    Invoice Total
+                  </FormLabel>
+                </div>
+                <div className={classes.column} />
+              </div>
+
+              <div className={classes.row}>
+                <div className={classes.column} />
+                <div className={classes.column}>
+                  <Input
+                    type="text"
+                    id="invoiceTotal"
+                    placeholder="$0"
+                    required
+                    readOnly={true}
+                    value={formatter.format(invoiceTotal)}
+                  />
+                </div>
+                <div className={classes.column} />
+              </div>
+            </div>
 
             <div className={classes.actions}>
               {!isLoading && props.invoice === undefined && (

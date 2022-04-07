@@ -5,26 +5,32 @@ import { getInvoices } from "../../../lib/api";
 import { Client } from "../../../models/Client";
 import { Invoice, TotalInvoice } from "../../../models/Invoice";
 import { AuthContext } from "../../../store/auth-context";
-import UITable from "../../UI/UITable";
+import UITable, { FilterType } from "../../UI/UITable";
 import InvoicesHeader from "./InvoicesHeader";
 
-const InvoicesTable: React.FC<{
+type InvoicesTableType = {
   title: string;
   disableSortBy: boolean;
   showPagination: boolean;
   isShowAllVisible: boolean;
   isAddNewVisible: boolean;
   selectedClient?: Client;
-}> = (props) => {
+  currentPage?: number;
+  sort?: string;
+  sortBy?: string;
+  linkHandler?: (page: number, sortBy: string, sort: string) => void;
+};
+
+const InvoicesTable: React.FC<InvoicesTableType> = (props) => {
   const columns = InvoicesHeader(props.disableSortBy);
 
   const [data, setData] = useState<Invoice[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [totalPages, setTotalPages] = useState(0);
-  const [currentPage, setCurrentPage] = useState(1);
+  const [currentPage, setCurrentPage] = useState(
+    props.currentPage ? props.currentPage : 1
+  );
   const itemsPerPage = 10;
-  const [orderBy, setOrderBy] = useState("");
-  const [order, setOrder] = useState("");
   const authCtx = useContext(AuthContext);
   const { token } = authCtx;
   const selectedClientId = props.selectedClient ? props.selectedClient.id : "";
@@ -38,7 +44,7 @@ const InvoicesTable: React.FC<{
   } = useHttp(getInvoices);
 
   useEffect(() => {
-    setCurrentPage(1);
+    if (props.selectedClient) setCurrentPage(1);
   }, [props.selectedClient]);
 
   useEffect(() => {
@@ -47,8 +53,8 @@ const InvoicesTable: React.FC<{
       token: token,
       params: {
         filter: selectedClientId,
-        orderBy: orderBy,
-        order: order,
+        orderBy: props.sortBy ? props.sortBy : "",
+        order: props.sort ? props.sort : "",
         limit: itemsPerPage,
         offset: (currentPage - 1) * itemsPerPage,
       },
@@ -57,8 +63,8 @@ const InvoicesTable: React.FC<{
     sendInvoiceRequest,
     token,
     currentPage,
-    order,
-    orderBy,
+    props.sort,
+    props.sortBy,
     selectedClientId,
   ]);
 
@@ -87,13 +93,17 @@ const InvoicesTable: React.FC<{
     [history]
   );
 
-  const changePageHandler = useCallback((newPage: number) => {
-    setCurrentPage(newPage);
+  const changePageHandler = useCallback((args: FilterType) => {
+    setCurrentPage(args.page);
+    if (props.linkHandler) {
+      props.linkHandler(args.page, args.sortBy, args.sort);
+    }
   }, []);
 
-  const sortHandler = useCallback((sort: { sortBy: string; sort: string }) => {
-    setOrderBy(sort.sortBy);
-    setOrder(sort.sort);
+  const sortHandler = useCallback((args: FilterType) => {
+    if (props.linkHandler) {
+      props.linkHandler(args.page, args.sortBy, args.sort);
+    }
   }, []);
 
   return (
@@ -114,6 +124,8 @@ const InvoicesTable: React.FC<{
       showPagination={props.showPagination}
       onChangePage={changePageHandler}
       onSort={sortHandler}
+      sort={props.sort ? props.sort : ""}
+      sortBy={props.sortBy ? props.sortBy : ""}
     />
   );
 };

@@ -381,6 +381,7 @@ export const postInvoice = async (userData: {
     invoice_number: string;
     client_id: string;
     date: number;
+    dueDate: number;
     value: number;
     projectCode: string;
     meta: Record<string, any>;
@@ -423,6 +424,7 @@ export const putInvoice = async (userData: {
     invoice_number: string;
     client_id: string;
     date: number;
+    dueDate: number;
     value: number;
     projectCode: string;
     meta: Record<string, any>;

@@ -160,11 +160,7 @@ const SingleDatepickerCalendar = (
               ))}
               {lodash_map(calendar.weeks, (week, weekIndex) => {
                 return lodash_map(week, (dateObj: DateObj, index) => {
-                  const {
-                    date,
-                    today,
-                    selected,
-                  } = dateObj;
+                  const { date, today, selected } = dateObj;
                   const key = `${calendar.month}${calendar.year}${weekIndex}${index}`;
 
                   return (

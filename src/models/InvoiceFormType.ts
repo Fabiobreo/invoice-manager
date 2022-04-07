@@ -6,6 +6,8 @@ export type InvoiceFormType = {
   invoice?: Invoice;
   client?: Client;
   print?: () => void;
+  showGoBack: boolean;
+  showActions: boolean;
   isEditMode: boolean;
   openAndPrint: boolean;
 };
