@@ -363,17 +363,15 @@ const InvoiceForm: React.FC<InvoiceFormType> = (props) => {
     setInvoiceItems(values);
   };
 
-  const handlePriceChange = (
-    index: number,
-    stringValue: string
-  ) => {
+  const handlePriceChange = (index: number, stringValue: string) => {
     let values = [...invoiceItems];
+    if (stringValue === "") stringValue = "0";
     values[index]["price"] = parseFloat(stringValue);
     setInvoiceItems(values);
 
     let total = 0;
     for (let i = 0; i < values.length; ++i) {
-      total += values[i].price;
+      total += +values[i].price;
     }
     setInvoiceTotal(total);
   };
@@ -403,22 +401,24 @@ const InvoiceForm: React.FC<InvoiceFormType> = (props) => {
           onConfirm={errorHandler}
         />
       )}
-      <Card className={classes.invoiceForm}>
+      <Card className={`${classes.invoiceForm} printInvoice`}>
         <div className={classes.control}>
           <Flex>
             {props.showGoBack && (
               <Center>
-                <IconButton
-                  aria-label="Go Back"
-                  size="sm"
-                  background="#64b5f6"
-                  color="white"
-                  ml={1}
-                  mt={1}
-                  onClick={() => history.goBack()}
-                >
-                  <ChevronLeftIcon h={6} w={6} />
-                </IconButton>
+                <div className="navigation">
+                  <IconButton
+                    aria-label="Go Back"
+                    size="sm"
+                    background="#64b5f6"
+                    color="white"
+                    ml={1}
+                    mt={1}
+                    onClick={() => history.goBack()}
+                  >
+                    <ChevronLeftIcon h={6} w={6} />
+                  </IconButton>
+                </div>
               </Center>
             )}
             <Spacer />
@@ -428,7 +428,7 @@ const InvoiceForm: React.FC<InvoiceFormType> = (props) => {
         </div>
         <div>
           {selectedClient !== undefined && showActions === true && (
-            <div className={classes.control}>
+            <div className={`${classes.control} navigation`}>
               <Flex ml={1} mr={1}>
                 <Center>
                   <Button
@@ -552,12 +552,9 @@ const InvoiceForm: React.FC<InvoiceFormType> = (props) => {
               </div>
             </div>
 
-            <Card className={classes.invoiceDeeperForm}>
+            <Card className={`${classes.invoiceDeeperForm} cardBreak`}>
               <FormControl
                 className={classes.control}
-                overflow="scroll"
-                overflowX={"hidden"}
-                height="200px"
               >
                 <div className={classes.control}>
                   <Center>
@@ -568,17 +565,17 @@ const InvoiceForm: React.FC<InvoiceFormType> = (props) => {
                 </div>
                 {invoiceItems.map((element, index) => (
                   <FormControl key={index} mt={1}>
-                    <div className={classes.row}>
+                    <div className={`${classes.row} noBreakInside`}>
                       <div className={classes.column}>
                         <FormLabel fontWeight="bold">Item</FormLabel>
                       </div>
                       <div className={classes.column}>
                         <FormLabel fontWeight="bold">Price ($)</FormLabel>
                       </div>
-                      {!isReadOnly &&<div className={classes.column} />}
+                      {!isReadOnly && <div className={classes.column} />}
                     </div>
 
-                    <div className={classes.row}>
+                    <div className={`${classes.row} noBreakInside`}>
                       <div className={classes.column}>
                         <Input
                           type="text"
@@ -597,7 +594,9 @@ const InvoiceForm: React.FC<InvoiceFormType> = (props) => {
                           id={`price${index}`}
                           isReadOnly={isReadOnly}
                           value={element.price || 0.0}
-                          onChange={(stringValue) => handlePriceChange(index, stringValue)}
+                          onChange={(stringValue) =>
+                            handlePriceChange(index, stringValue)
+                          }
                           step={0.5}
                         >
                           <NumberInputField required />
@@ -646,7 +645,7 @@ const InvoiceForm: React.FC<InvoiceFormType> = (props) => {
               </FormControl>
             </Card>
 
-            <div className={classes.control}>
+            <div className={`${classes.control} noBreakInside`}>
               <div className={classes.row}>
                 <div className={classes.column} />
                 <div className={classes.column}>
