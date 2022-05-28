@@ -3,7 +3,6 @@ import { useHistory } from "react-router-dom";
 import useHttp from "../../../hooks/use-http";
 import { getClients } from "../../../lib/api";
 import { Client } from "../../../models/Client";
-import { AuthContext } from "../../../store/auth-context";
 import UITable, { FilterType } from "../../UI/UITable";
 import ClientHeader from "./ClientHeader";
 
@@ -22,15 +21,10 @@ type ClientsTableType = {
 const ClientsTable: React.FC<ClientsTableType> = (props) => {
   const columns = ClientHeader(props.disableSortBy);
 
-  const [data, setData] = useState<Client[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [totalPages, setTotalPages] = useState(0);
   const [currentPage, setCurrentPage] = useState(
     props.currentPage ? props.currentPage : 1
   );
   const itemsPerPage = 10;
-  const authCtx = useContext(AuthContext);
-  const { token } = authCtx;
   const history = useHistory();
 
   const {
@@ -41,9 +35,7 @@ const ClientsTable: React.FC<ClientsTableType> = (props) => {
   } = useHttp(getClients);
 
   useEffect(() => {
-    setIsLoading(true);
     sendClientRequest({
-      token: token,
       params: {
         orderBy: props.sortBy ? props.sortBy : "",
         order: props.sort ? props.sort : "",
@@ -51,17 +43,7 @@ const ClientsTable: React.FC<ClientsTableType> = (props) => {
         offset: (currentPage - 1) * itemsPerPage,
       },
     });
-  }, [sendClientRequest, token, currentPage, props.sort, props.sortBy]);
-
-  useEffect(() => {
-    if (clientStatus === "completed" && !clientError) {
-      setIsLoading(false);
-      setData(clientData.clients);
-      setTotalPages(Math.ceil(clientData.total / itemsPerPage));
-    } else if (clientError) {
-      setIsLoading(false);
-    }
-  }, [clientStatus, clientData, clientError]);
+  }, [currentPage, props.sort, props.sortBy]);
 
   const showAllHandler = useCallback(() => {
     history.push("/clients");
@@ -96,15 +78,17 @@ const ClientsTable: React.FC<ClientsTableType> = (props) => {
       id={"ClientsTable"}
       title={props.title}
       columns={columns}
-      data={data}
-      isLoading={isLoading}
+      data={clientData !== null ? clientData.clients : []}
+      isLoading={clientStatus !== "completed" || clientError !== null}
       error={clientError}
       isShowAllVisible={props.isShowAllVisible}
       onShowAll={showAllHandler}
       isAddNewVisible={props.isAddNewVisible}
       onAddNew={addNewHandler}
       onRowClick={rowClickHandler}
-      totalPages={totalPages}
+      totalPages={
+        clientData !== null ? Math.ceil(clientData.total / itemsPerPage) : 0
+      }
       currentPage={currentPage}
       showPagination={props.showPagination}
       onChangePage={changePageHandler}

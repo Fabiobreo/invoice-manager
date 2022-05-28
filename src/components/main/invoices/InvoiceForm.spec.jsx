@@ -89,8 +89,8 @@ describe("Invoice form checks", () => {
     cy.get("[id=selectClient]").type("TestClient | Company Name{enter}");
     cy.get("[id=invoiceNumber]").type("9999").should("have.value", "9999");
     cy.get("[id=projectIdentifier]").type("9999").should("have.value", "9999");
-    cy.get("[id=item0]").type("Test item").should("have.value", "Test item");
-    cy.get("[id=price0]").clear().type("9999").should("have.value", "9999");
+    cy.get("[id=invoiceItem0item]").type("Test item").should("have.value", "Test item");
+    cy.get("[id=invoiceItem0price]").clear().type("9999").should("have.value", "9999");
     cy.get("[id=createInvoiceButton]").click();
     cy.wait(1000);
 

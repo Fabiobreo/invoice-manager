@@ -4,12 +4,13 @@ import { Switch, Route, Redirect } from "react-router-dom";
 import AuthPage from "./pages/AuthPage";
 import PageLayout from "./components/PageLayout/PageLayout";
 import HomePage from "./pages/HomePage";
-import ClientForm from "./components/main/clients/ClientForm";
 import ClientDetails from "./components/main/clients/ClientDetails";
 import Clients from "./components/main/clients/Clients";
 import Invoices from "./components/main/invoices/Invoices";
 import InvoiceForm from "./components/main/invoices/InvoiceForm";
 import InvoiceDetails from "./components/main/invoices/InvoiceDetails";
+import AddClient from "./components/main/clients/AddClient";
+import AddInvoice from "./components/main/invoices/AddInvoice";
 
 const App = () => {
   const authCtx = useContext(AuthContext);
@@ -33,12 +34,7 @@ const App = () => {
         )}
         {isRegistered && (
           <Route path="/clients/add" exact>
-            <ClientForm
-              loadAllClients={false}
-              isReadOnly={false}
-              isEditMode={false}
-              showGoBack={true}
-            />
+            <AddClient />
           </Route>
         )}
         {isRegistered && (
@@ -61,13 +57,13 @@ const App = () => {
 
         {isRegistered && (
           <Route path="/invoices/add" exact>
-            <InvoiceForm
-              loadAllClients={true}
-              showActions={false}
-              isEditMode={false}
-              showGoBack={true}
-              openAndPrint={false}
-            />
+            <AddInvoice />
+          </Route>
+        )}
+        
+        {isRegistered && (
+          <Route path="/invoices/add/:clientId" exact>
+            <AddInvoice />
           </Route>
         )}
 

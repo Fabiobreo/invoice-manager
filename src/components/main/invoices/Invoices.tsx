@@ -3,56 +3,20 @@ import InvoicesTable from "./InvoicesTable";
 
 import classes from "./Invoices.module.css";
 import { Box } from "@chakra-ui/react";
-import { ChakraStylesConfig, Select } from "chakra-react-select";
-import { useCallback, useContext, useEffect, useState } from "react";
+import { Select } from "chakra-react-select";
+import { useCallback, useEffect, useState } from "react";
 import { ClientComboBox, ClientItem } from "../../../models/ClientComboBox";
 import { Client } from "../../../models/Client";
 import useHttp from "../../../hooks/use-http";
 import { getClients } from "../../../lib/api";
-import { AuthContext } from "../../../store/auth-context";
 import LoadingSpinner from "../../UI/LoadingSpinner";
 import ErrorModal, { ErrorType } from "../../UI/ErrorModal";
 import useRouter from "../../../hooks/useRuoter";
-
-const chakraStyles: ChakraStylesConfig = {
-  dropdownIndicator: (prev, { selectProps: { menuIsOpen } }) => ({
-    ...prev,
-    "> svg": {
-      transitionDuration: "normal",
-      transform: `rotate(${menuIsOpen ? -180 : 0}deg)`,
-    },
-  }),
-
-  control: (provided) => ({
-    ...provided,
-    background: "#e3f2fd",
-    font: "inherit",
-    color: "#1976d2",
-    borderRadius: "4px",
-    border: "1px solid white",
-    width: "100%",
-    textAlign: "left",
-    padding: "0.25rem",
-  }),
-
-  groupHeading: (provided) => ({
-    ...provided,
-    background: "#64b5f6",
-    color: "white",
-  }),
-
-  group: (provided) => ({
-    ...provided,
-    background: "#e3f2fd",
-    color: "#1976d2",
-  }),
-};
+import { ClientChakraStyles } from "../../../models/ClientChakraStyles";
 
 const Invoices = () => {
   const router = useRouter();
   const { pathname, history } = router;
-  const authCtx = useContext(AuthContext);
-  const { token } = authCtx;
   const [clients, setClients] = useState<ClientComboBox[]>();
   const [selectedVisibleClient, setSelectedVisibleClient] =
     useState<ClientItem>();
@@ -80,13 +44,12 @@ const Invoices = () => {
   useEffect(() => {
     setIsClientsLoading(true);
     sendGetClientsRequest({
-      token: token,
       params: {
         orderBy: "clientName",
         order: "asc",
       },
     });
-  }, [sendGetClientsRequest, token]);
+  }, [sendGetClientsRequest]);
 
   useEffect(() => {
     if (getClientsDetailsStatus === "completed" && !getClientsDetailsError) {
@@ -134,7 +97,6 @@ const Invoices = () => {
   const selectHandler = (item: any) => {
     const selected = item.value.client as Client;
     clientId = selected.id;
-    console.log(clientId);
     setSelectedClient(selected);
     setSelectedVisibleClient({
       value: { client: selected },
@@ -192,7 +154,7 @@ const Invoices = () => {
             options={clients}
             placeholder="Filter by client or company name..."
             closeMenuOnSelect={true}
-            chakraStyles={chakraStyles}
+            chakraStyles={ClientChakraStyles}
             value={selectedVisibleClient}
             onChange={selectHandler}
           />

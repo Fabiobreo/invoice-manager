@@ -6,20 +6,24 @@ import {
   InputGroup,
   InputRightElement,
 } from "@chakra-ui/react";
-import { Fragment, useContext, useEffect, useRef, useState } from "react";
-import { useHistory } from "react-router-dom";
+import { Fragment, useContext, useEffect, useState } from "react";
+import { SubmitHandler, useForm } from "react-hook-form";
 import useHttp from "../../hooks/use-http";
-import { login } from "../../lib/api";
+import { loginUser } from "../../lib/api";
 import { AuthContext } from "../../store/auth-context";
 import Card from "../UI/Card";
 import ErrorModal, { ErrorType } from "../UI/ErrorModal";
 
 import classes from "./Login.module.css";
 
+type LoginInputs = {
+  email: string;
+  password: string;
+};
+
 const Login: React.FC<{ switchAuthMode: () => void }> = (props) => {
-  const history = useHistory();
-  const emailInputRef = useRef<HTMLInputElement>(null);
-  const passwordInputRef = useRef<HTMLInputElement>(null);
+  const { register, handleSubmit } = useForm<LoginInputs>();
+
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<ErrorType>();
   const [showPassword, setShowPassword] = useState(false);
@@ -30,7 +34,7 @@ const Login: React.FC<{ switchAuthMode: () => void }> = (props) => {
     data: loginData,
     status: loginStatus,
     error: loginError,
-  } = useHttp(login);
+  } = useHttp(loginUser);
 
   useEffect(() => {
     if (loginStatus === "completed" && !loginError) {
@@ -47,36 +51,13 @@ const Login: React.FC<{ switchAuthMode: () => void }> = (props) => {
         onConfirm: errorHandler,
       });
     }
-  }, [loginStatus, loginData, loginError, authCtx, history]);
+  }, [loginStatus, loginData, loginError, authCtx]);
 
-  const submitHandler = (event: React.FormEvent) => {
-    event.preventDefault();
-
-    const enteredEmail = emailInputRef.current!.value;
-    const enteredPassword = passwordInputRef.current!.value;
-
-    if (enteredEmail.trim().length === 0) {
-      setError({
-        title: "Authentication failed",
-        message: "Enter a valid email",
-        onConfirm: errorHandler,
-      });
-      return;
-    }
-
-    if (enteredPassword.trim().length === 0) {
-      setError({
-        title: "Authentication failed",
-        message: "Enter a valid password",
-        onConfirm: errorHandler,
-      });
-      return;
-    }
-
+  const submitHandler: SubmitHandler<LoginInputs> = (data) => {
     setIsLoading(true);
     sendLoginRequest({
-      email: enteredEmail,
-      password: enteredPassword,
+      email: data.email,
+      password: data.password,
     });
   };
 
@@ -99,7 +80,7 @@ const Login: React.FC<{ switchAuthMode: () => void }> = (props) => {
       )}
       <Card className={classes.login}>
         <Heading margin="2">Login</Heading>
-        <form onSubmit={submitHandler}>
+        <form onSubmit={handleSubmit(submitHandler)}>
           <div className={classes.control}>
             <FormLabel fontWeight="bold" htmlFor="email">
               Email
@@ -109,7 +90,7 @@ const Login: React.FC<{ switchAuthMode: () => void }> = (props) => {
               id="email"
               placeholder="Enter email"
               required
-              ref={emailInputRef}
+              {...register("email")}
             />
           </div>
           <div className={classes.control}>
@@ -123,7 +104,7 @@ const Login: React.FC<{ switchAuthMode: () => void }> = (props) => {
                 type={showPassword ? "text" : "password"}
                 required
                 placeholder="Enter password"
-                ref={passwordInputRef}
+                {...register("password")}
               />
               <InputRightElement width="4.5rem">
                 <Button

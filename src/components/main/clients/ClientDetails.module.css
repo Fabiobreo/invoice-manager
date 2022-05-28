@@ -6,3 +6,15 @@
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
   padding: 1rem;
 }
+
+.clientForm {
+  margin: 6rem auto;
+  width: 100%;
+  max-width: 50rem;
+  border-radius: 6px;
+  background-color: #1976d2;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+  padding: 1rem;
+  text-align: center;
+  color: white;
+}

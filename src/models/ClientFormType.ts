@@ -1,11 +1,9 @@
-import { Client } from "./Client";
+import { Client, ClientInfo } from "./Client";
 
 export type ClientFormType = {
   client?: Client;
   className?: string;
-  loadAllClients: boolean;
-  onSelectedClient?: (client: Client) => void;
-  showGoBack: boolean;
   isReadOnly: boolean;
-  isEditMode: boolean;
+  isLoading?: boolean;
+  onSubmitClient?: (client: ClientInfo) => void;
 };

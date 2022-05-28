@@ -9,25 +9,37 @@ import {
 import { useHistory, useParams } from "react-router-dom";
 import { useReactToPrint } from "react-to-print";
 import useHttp from "../../../hooks/use-http";
-import { getClient, getInvoice } from "../../../lib/api";
-import { Client } from "../../../models/Client";
-import { Invoice } from "../../../models/Invoice";
-import { AuthContext } from "../../../store/auth-context";
+import { getClient, getInvoice, putInvoice } from "../../../lib/api";
+import { InvoiceInfo } from "../../../models/Invoice";
+import Card from "../../UI/Card";
 import ErrorModal, { ErrorType } from "../../UI/ErrorModal";
 import LoadingSpinner from "../../UI/LoadingSpinner";
 import InvoiceForm from "./InvoiceForm";
+import classes from "./InvoiceDetails.module.css";
+import {
+  Button,
+  Center,
+  Flex,
+  Heading,
+  IconButton,
+  Spacer,
+  useToast,
+} from "@chakra-ui/react";
+import { ChevronLeftIcon } from "@chakra-ui/icons";
+import ClientForm from "../clients/ClientForm";
+import { InvoiceFormType } from "../../../models/InvoiceFormType";
 
-const InvoiceDetails = () => {
-  const authCtx = useContext(AuthContext);
+const InvoiceDetails: React.FC<{ className?: string }> = (props) => {
   const history = useHistory();
+  const [error, setError] = useState<ErrorType>();
+  const toast = useToast();
   const params = useParams<{ invoiceId?: string }>();
   const { invoiceId } = params;
-  const componentRef = useRef(null);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<ErrorType>();
-  const [invoice, setInvoice] = useState<Invoice>();
-  const [client, setClient] = useState<Client>();
 
+  const state = history.location.state as InvoiceFormType;
+  const [editMode, setEditMode] = useState(state ? !state.isReadOnly : false);
+
+  const componentRef = useRef(null);
   const handlePrint = useReactToPrint({
     content: () => componentRef.current,
   });
@@ -46,95 +58,199 @@ const InvoiceDetails = () => {
     error: getClientDetailsError,
   } = useHttp(getClient);
 
+  const {
+    sendRequest: sendPutInvoiceRequest,
+    status: putInvoiceDetailsStatus,
+    error: putInvoiceDetailsError,
+  } = useHttp(putInvoice);
+
   const errorHandler = useCallback(() => {
     setError(undefined);
-    history.replace("/");
   }, [history]);
 
   useEffect(() => {
-    if (getInvoiceDetailsStatus === "completed" && !getInvoiceDetailsError) {
-      setIsLoading(false);
-      setInvoice(getInvoiceDetailsData.invoice);
-    } else if (getInvoiceDetailsError) {
-      setIsLoading(false);
-      setError({
-        title: "Fetching invoice failed",
-        message: getInvoiceDetailsError,
-        onConfirm: errorHandler,
-      });
-    }
-  }, [
-    getInvoiceDetailsStatus,
-    getInvoiceDetailsData,
-    getInvoiceDetailsError,
-    errorHandler,
-  ]);
-
-  useEffect(() => {
     if (invoiceId !== undefined) {
-      setIsLoading(true);
-      sendGetInvoiceRequest({
-        token: authCtx.current_user!.token,
-        id: invoiceId,
-      });
+      sendGetInvoiceRequest({ id: invoiceId });
     }
-  }, [authCtx.current_user, invoiceId, sendGetInvoiceRequest]);
+  }, [invoiceId, sendGetInvoiceRequest]);
 
   useEffect(() => {
-    if (invoice) {
-      setIsLoading(true);
-      sendGetClientRequest({
-        token: authCtx.current_user!.token,
-        id: invoice.client_id,
-      });
+    if (getInvoiceDetailsData && getInvoiceDetailsData.invoice) {
+      sendGetClientRequest({ id: getInvoiceDetailsData.invoice.client_id });
     }
-  }, [authCtx.current_user, invoice, sendGetClientRequest]);
+  }, [getInvoiceDetailsData, sendGetClientRequest]);
 
   useEffect(() => {
-    if (getClientDetailsStatus === "completed" && !getClientDetailsError) {
-      setIsLoading(false);
-      setClient(getClientDetailsData.client);
-    } else if (getClientDetailsError) {
-      setIsLoading(false);
+    if (getClientDetailsStatus === "completed" && state && state.openAndPrint) {
+      handlePrint();
+    }
+  }, [getClientDetailsData]);
+
+  const submitInvoiceHandler = (invoice: InvoiceInfo) => {
+    if (invoice.date > invoice.dueDate) {
       setError({
-        title: "Fetching invoice's client failed",
-        message: getClientDetailsError,
+        title: "Invoice update failed",
+        message: "You must set the due date later than the invoice date",
+        onConfirm: errorHandler,
+      });
+      return;
+    }
+
+    sendPutInvoiceRequest({
+      invoice: {
+        ...invoice,
+        id: invoiceId,
+        client_id: getInvoiceDetailsData.invoice.client_id,
+      },
+    });
+  };
+
+  useEffect(() => {
+    if (putInvoiceDetailsStatus === "completed" && !putInvoiceDetailsError) {
+      toast({
+        title: "Invoice updated.",
+        description: "Invoice successfully updated.",
+        status: "success",
+        duration: 5000,
+        isClosable: true,
+      });
+      setEditMode(false);
+
+      sendGetInvoiceRequest({ id: invoiceId });
+    } else if (putInvoiceDetailsError) {
+      setError({
+        title: "Invoice update failed",
+        message: putInvoiceDetailsError,
         onConfirm: errorHandler,
       });
     }
-  }, [
-    getClientDetailsStatus,
-    getClientDetailsData,
-    getClientDetailsError,
-    errorHandler,
-  ]);
+  }, [putInvoiceDetailsStatus, putInvoiceDetailsError]);
+
+  const editModeHandler = () => {
+    setEditMode((previous) => {
+      return !previous;
+    });
+  };
 
   return (
     <Fragment>
+      {getInvoiceDetailsError && (
+        <ErrorModal
+          title={"Fetching invoice failed"}
+          message={getInvoiceDetailsError}
+          onConfirm={() => history.goBack()}
+        />
+      )}
+
+      {getClientDetailsError && (
+        <ErrorModal
+          title={"Fetching invoice's client failed"}
+          message={getClientDetailsError}
+          onConfirm={() => history.goBack()}
+        />
+      )}
+
       {error && (
         <ErrorModal
           title={error.title}
           message={error.message}
-          onConfirm={errorHandler}
+          onConfirm={error.onConfirm}
         />
       )}
-      {isLoading && (
+
+      {getInvoiceDetailsStatus !== "completed" && (
         <div className="centered">
           <LoadingSpinner />
         </div>
       )}
-      {!isLoading && (
+
+      {!getInvoiceDetailsError && getInvoiceDetailsStatus === "completed" && (
         <div ref={componentRef}>
-          <InvoiceForm
-            loadAllClients={false}
-            invoice={invoice}
-            client={client}
-            print={handlePrint}
-            showActions={true}
-            showGoBack={true}
-            isEditMode={false}
-            openAndPrint={false}
-          />
+          <Card
+            className={`${classes.invoiceForm} ${
+              props.className ? props.className : ""
+            }`}
+          >
+            <div className={classes.control}>
+              <Flex>
+                <Center>
+                  <div className="navigation">
+                    <IconButton
+                      aria-label="Go Back"
+                      size="sm"
+                      background="#64b5f6"
+                      color="white"
+                      ml={1}
+                      mt={1}
+                      onClick={() => history.goBack()}
+                    >
+                      <ChevronLeftIcon h={6} w={6} />
+                    </IconButton>
+                  </div>
+                </Center>
+                <Spacer />
+                <Heading size={"2xl"}>Invoice</Heading>
+                <Spacer />
+              </Flex>
+            </div>
+
+            <div className={`${classes.control} navigation`}>
+              <Flex ml={1} mr={1}>
+                <Center>
+                  <Button
+                    type="button"
+                    h="2.25rem"
+                    w="3.75rem"
+                    size="md"
+                    background="#64b5f6"
+                    color="white"
+                    onClick={handlePrint}
+                    visibility={editMode ? "hidden" : "visible"}
+                  >
+                    Print
+                  </Button>
+                </Center>
+                <Spacer />
+                <Center>
+                  <Button
+                    type="button"
+                    h="2.25rem"
+                    w="3.75rem"
+                    size="md"
+                    background="#64b5f6"
+                    color="white"
+                    onClick={editModeHandler}
+                  >
+                    {!editMode ? "Edit" : "Cancel"}
+                  </Button>
+                </Center>
+              </Flex>
+            </div>
+
+            <Card className={classes.invoiceDeeperForm}>
+              {getClientDetailsStatus === "pending" && (
+                <div className="centered">
+                  <LoadingSpinner className={classes.spinner} />
+                </div>
+              )}
+              {!getClientDetailsError &&
+                getClientDetailsStatus === "completed" && (
+                  <ClientForm
+                    className={classes.invoiceDeeperForm}
+                    client={getClientDetailsData.client}
+                    isReadOnly={true}
+                    isLoading={false}
+                  />
+                )}
+            </Card>
+
+            <InvoiceForm
+              invoice={getInvoiceDetailsData.invoice}
+              isReadOnly={!editMode}
+              isLoading={false}
+              onSubmitInvoice={submitInvoiceHandler}
+            />
+          </Card>
         </div>
       )}
     </Fragment>

@@ -58,7 +58,7 @@ const HomePage = () => {
       currentUser.token !== ""
     ) {
       setIsLoading(true);
-      sendCompanyDetailsRequest(currentUser.token);
+      sendCompanyDetailsRequest(null);
     }
   }, [currentUser, sendCompanyDetailsRequest]);
 

@@ -1,12 +1,6 @@
 import { Button, FormLabel, Heading, Input } from "@chakra-ui/react";
-import {
-  useState,
-  Fragment,
-  useRef,
-  useContext,
-  useEffect,
-  useCallback,
-} from "react";
+import { useState, Fragment, useContext, useEffect, useCallback } from "react";
+import { SubmitHandler, useForm } from "react-hook-form";
 import useHttp from "../../hooks/use-http";
 import { putCompanyDetails } from "../../lib/api";
 import { AuthContext } from "../../store/auth-context";
@@ -15,15 +9,18 @@ import ErrorModal, { ErrorType } from "../UI/ErrorModal";
 
 import classes from "./CompanyDetailsForm.module.css";
 
+type CompanyDetailsInputs = {
+  name: string;
+  address: string;
+  vat: string;
+  reg: string;
+};
+
 const CompanyDetailsForm = () => {
+  const { register, handleSubmit } = useForm<CompanyDetailsInputs>();
   const authCtx = useContext(AuthContext);
   const { setCompanyDetails } = authCtx;
 
-  const nameInputRef = useRef<HTMLInputElement>(null);
-  const addressInputRef = useRef<HTMLInputElement>(null);
-  const vatInputRef = useRef<HTMLInputElement>(null);
-  const regInputRef = useRef<HTMLInputElement>(null);
-  const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<ErrorType>();
 
   const {
@@ -39,7 +36,6 @@ const CompanyDetailsForm = () => {
 
   useEffect(() => {
     if (companyDetailsStatus === "completed" && !companyDetailsError) {
-      setIsLoading(false);
       if (
         companyDetailsData &&
         companyDetailsData.user &&
@@ -48,7 +44,6 @@ const CompanyDetailsForm = () => {
         setCompanyDetails(companyDetailsData.user.companyDetails);
       }
     } else if (companyDetailsError) {
-      setIsLoading(false);
       setError({
         title: "Company registration failed",
         message: companyDetailsError,
@@ -63,58 +58,13 @@ const CompanyDetailsForm = () => {
     errorHandler,
   ]);
 
-  const submitHandler = (event: React.FormEvent) => {
-    event.preventDefault();
-
-    const enteredName = nameInputRef.current!.value;
-    const enteredAddress = addressInputRef.current!.value;
-    const enteredVat = vatInputRef.current!.value;
-    const enteredReg = regInputRef.current!.value;
-
-    if (enteredName?.trim().length === 0) {
-      setError({
-        title: "Company registration failed",
-        message: "Enter a valid name.",
-        onConfirm: errorHandler,
-      });
-      return;
-    }
-
-    if (enteredAddress?.trim().length === 0) {
-      setError({
-        title: "Company registration failed",
-        message: "Enter a valid address.",
-        onConfirm: errorHandler,
-      });
-      return;
-    }
-
-    if (enteredVat?.trim().length === 0) {
-      setError({
-        title: "Company registration failed",
-        message: "Enter a valid TAX/VAT number.",
-        onConfirm: errorHandler,
-      });
-      return;
-    }
-
-    if (enteredReg?.trim().length === 0) {
-      setError({
-        title: "Company registration failed",
-        message: "Enter a valid registration number.",
-        onConfirm: errorHandler,
-      });
-      return;
-    }
-
-    setIsLoading(true);
+  const submitHandler: SubmitHandler<CompanyDetailsInputs> = (data) => {
     sendCompanyDetailsRequest({
-      token: authCtx.current_user!.token,
       companyDetails: {
-        name: enteredName,
-        address: enteredAddress,
-        vatNumber: enteredVat,
-        regNumber: enteredReg,
+        name: data.name,
+        address: data.address,
+        vatNumber: data.vat,
+        regNumber: data.reg,
       },
     });
   };
@@ -133,7 +83,7 @@ const CompanyDetailsForm = () => {
         <Heading size="1x4" margin="3">
           Please fill in the form below before continue
         </Heading>
-        <form onSubmit={submitHandler}>
+        <form onSubmit={handleSubmit(submitHandler)}>
           <div className={classes.control}>
             <FormLabel fontWeight="bold" htmlFor="name">
               Name
@@ -143,7 +93,7 @@ const CompanyDetailsForm = () => {
               id="name"
               placeholder="Enter name"
               required
-              ref={nameInputRef}
+              {...register("name")}
             />
           </div>
           <div className={classes.control}>
@@ -155,7 +105,7 @@ const CompanyDetailsForm = () => {
               id="address"
               placeholder="Enter address"
               required
-              ref={addressInputRef}
+              {...register("address")}
             />
           </div>
           <div className={classes.control}>
@@ -167,7 +117,7 @@ const CompanyDetailsForm = () => {
               id="vatNumber"
               placeholder="Enter tax/vat number"
               required
-              ref={vatInputRef}
+              {...register("vat")}
             />
           </div>
           <div className={classes.control}>
@@ -179,13 +129,15 @@ const CompanyDetailsForm = () => {
               id="regNumber"
               placeholder="Enter registration number"
               required
-              ref={regInputRef}
+              {...register("reg")}
             />
           </div>
 
           <div className={classes.actions}>
-            {!isLoading && <Button type="submit">Submit</Button>}
-            {isLoading && (
+            {companyDetailsStatus !== "pending" && (
+              <Button type="submit">Submit</Button>
+            )}
+            {companyDetailsStatus === "pending" && (
               <Button isLoading loadingText="Submitting">
                 Submitting
               </Button>

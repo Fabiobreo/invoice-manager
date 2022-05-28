@@ -75,9 +75,7 @@ const InvoicesHeader = (disableSort: boolean) => {
                   history.push({
                     pathname: `/invoices/${row.invoice.id}`,
                     state: {
-                      client: row.client,
-                      loadAllClients: false,
-                      isEditMode: true,
+                      isReadOnly: false
                     } as InvoiceFormType,
                   });
                 }}
@@ -89,9 +87,7 @@ const InvoicesHeader = (disableSort: boolean) => {
                   history.push({
                     pathname: `/invoices/${row.invoice.id}`,
                     state: {
-                      client: row.client,
-                      loadAllClients: false,
-                      isEditMode: false,
+                      isReadOnly: true,
                       openAndPrint: true,
                     } as InvoiceFormType,
                   });

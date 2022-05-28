@@ -139,7 +139,7 @@ describe("Register checks", () => {
     cy.wait(1000);
 
     cy.get("[id=headerLogout]").should("not.exist");
-    cy.get("[id=modalErrorTitle]").contains("Registration failed");
+    cy.get("[id=confirmPasswordMismatch]").should("exist");
   });
 
   it("Register", () => {

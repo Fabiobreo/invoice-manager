@@ -50,6 +50,14 @@
   margin-left: 5px;
   margin-right: 5px;
 }
+.deleteColumn {
+  display: flex;
+  flex-direction: column;
+  flex-basis: 100%;
+  flex: 0.4;
+  margin-left: 5px;
+  margin-right: 5px;
+}
 
 .control label {
   display: block;

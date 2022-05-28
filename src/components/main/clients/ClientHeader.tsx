@@ -71,9 +71,7 @@ const ClientHeader = (disableSort: boolean) => {
                   history.push({
                     pathname: `/clients/${row.id}`,
                     state: {
-                      client: row,
-                      loadAllClients: false,
-                      isEditMode: true,
+                      isReadOnly: false
                     } as ClientFormType,
                   });
                 }}
@@ -83,11 +81,7 @@ const ClientHeader = (disableSort: boolean) => {
               <MenuItem
                 onClick={() => {
                   history.push({
-                    pathname: "/invoices/add",
-                    state: {
-                      client: row,
-                      loadAllClients: false,
-                    } as InvoiceFormType,
+                    pathname: `/invoices/add/${row.id}`,
                   });
                 }}
               >

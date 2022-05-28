@@ -1,4 +1,5 @@
-import { useReducer, useCallback } from "react";
+import { useReducer, useCallback, useContext } from "react";
+import { AuthContext } from "../store/auth-context";
 
 type Action = {
   type: string;
@@ -44,6 +45,9 @@ const useHttp = (
   requestFunction: (parameter: any) => Promise<any>,
   startWithPending = false
 ) => {
+  const authCtx = useContext(AuthContext);
+  const {token} = authCtx;
+
   const [httpState, dispatch] = useReducer(httpReducer, {
     status: startWithPending ? "pending" : null,
     data: null,
@@ -54,7 +58,7 @@ const useHttp = (
     async function (requestData) {
       dispatch({ type: "SEND" });
       try {
-        const responseData = await requestFunction(requestData);
+        const responseData = await requestFunction({...requestData, token});
 
         dispatch({ type: "SUCCESS", responseData });
       } catch (error) {

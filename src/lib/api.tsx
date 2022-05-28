@@ -1,8 +1,9 @@
+import { ClientInfo } from "../models/Client";
 import { CompanyDetails } from "../models/CompanyDetails";
 
 const SERVER_DOMAIN = "http://localhost:3139";
 
-export const register = async (userData: {
+export const registerUser = async (userData: {
   name: string;
   email: string;
   password: string;
@@ -34,7 +35,10 @@ export const register = async (userData: {
   return null;
 };
 
-export const login = async (userData: { email: string; password: string }) => {
+export const loginUser = async (userData: {
+  email: string;
+  password: string;
+}) => {
   const response = await fetch(`${SERVER_DOMAIN}/login`, {
     method: "POST",
     body: JSON.stringify(userData),
@@ -66,11 +70,11 @@ export const login = async (userData: { email: string; password: string }) => {
   return res;
 };
 
-export const getCompanyDetails = async (userToken: string) => {
+export const getCompanyDetails = async (userData: { token: string }) => {
   const response = await fetch(`${SERVER_DOMAIN}/me`, {
     method: "GET",
     headers: new Headers({
-      "x-access-token": userToken,
+      "x-access-token": userData.token,
       "Content-Type": "application/json",
     }),
   });
@@ -216,11 +220,7 @@ export const getClient = async (userData: { token: string; id: string }) => {
 
 export const postClient = async (userData: {
   token: string;
-  client: {
-    name: string;
-    email: string;
-    companyDetails: CompanyDetails;
-  };
+  client: ClientInfo;
 }) => {
   const response = await fetch(`${SERVER_DOMAIN}/clients`, {
     method: "POST",
